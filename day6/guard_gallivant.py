@@ -72,16 +72,16 @@ def find_possible_loop_in_path(direction, coord, obstructions, limits):
 
 
 def part2(file):
-    coord, obstructions, limits = parse(file)
+    guard_start_coord, obstructions, limits = parse(file)
     # test added obstructions one by one, using path coords to lower test set
     results = []
     unique_path_coords = find_path_unique_coords(
-        UP, coord, obstructions, limits)
-    for obc in unique_path_coords:
+        UP, guard_start_coord, obstructions, limits)
+    for obstruction in unique_path_coords:
         test_obstructions = obstructions.copy()
-        test_obstructions.add(obc)
+        test_obstructions.add(obstruction)
         results.append(find_possible_loop_in_path(
-            UP, coord, test_obstructions, limits))
+            UP, guard_start_coord, test_obstructions, limits))
 
     return sum(results)
 
