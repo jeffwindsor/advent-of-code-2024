@@ -12,7 +12,7 @@ def is_safe(report):
     return all_within_bounds and (all_positive or all_negative)
 
 def is_safe_dampered(report):
-    if is_safe(report): 
+    if is_safe(report):
         return True
     damped_reports = [report[:i] + report[i+1:] for i in range(len(report))]
     results = map(is_safe, damped_reports)
