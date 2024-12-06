@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+
 def parse(file):
     # read file contents
     with open(file, "r") as file:
@@ -15,7 +16,8 @@ def parse(file):
         page_ordering_rules[key].append(value)
 
     # Section 2: Parsing page updates into a list of lists
-    page_updates = [list(map(int, line.strip().split(','))) for line in sections[1].splitlines()]
+    page_updates = [list(map(int, line.strip().split(',')))
+                    for line in sections[1].splitlines()]
 
     return page_ordering_rules, page_updates
 
@@ -34,6 +36,5 @@ def pprint(file):
 
 
 if __name__ == "__main__":
-    pprint('example1')
-    #pprint('puzzle_input')
-
+    #pprint('example')
+    pprint('puzzle_input')
