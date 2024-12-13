@@ -1,59 +1,89 @@
 from parser import parse
 from collections import deque
-from dataclasses import dataclass
-
-@dataclass(frozen=True)
-class Cell:
-    x: int
-    y: int
-    value: int
 
 
-def bfs(matrix, start_cell):
+directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
+
+
+# =============================================================================
+def find_reachable_nines(matrix, starts):
     rows, cols = len(matrix), len(matrix[0])
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
-    queue = deque([start_cell])
-    visited = set([start_cell])
+    queue = deque([starts])
+    visited = set([starts])
     leaves = set()
 
     while queue:
-        cell = queue.popleft()
+        (x, y) = queue.popleft()
+        v = matrix[x][y]
 
-        if cell.value == 9:
-            leaves.add(cell)
+        if v == 9:
+            leaves.add((x, y))
 
         for dx, dy in directions:
-            nx, ny = cell.x + dx, cell.y + dy
-            if (0 <= nx < rows and 0 <= ny < cols):
-                next_cell = Cell(nx, ny, matrix[nx][ny])
-                if next_cell not in visited and cell.value + 1 == next_cell.value:
-                    queue.append(next_cell)
-                    visited.add(next_cell)
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < rows and 0 <= ny < cols:
+                next = (nx, ny)
+                if next not in visited and v + 1 == matrix[nx][ny]:
+                    queue.append(next)
+                    visited.add(next)
     return leaves
 
 
 def find_zeros(matrix):
     rows, cols = len(matrix), len(matrix[0])
-    return [Cell(x, y, matrix[x][y])
-            for y in range(rows)
-            for x in range(cols)
-            if matrix[x][y] == 0]
+    return [(x, y) for y in range(rows) for x in range(cols) if matrix[x][y] == 0]
 
 
 def part1(file):
     topo_map = parse(file)
-    return sum([len(bfs(topo_map, zero_cell)) for zero_cell in find_zeros(topo_map)])
+    zeros = find_zeros(topo_map)
+    return sum([len(find_reachable_nines(topo_map, z)) for z in zeros])
+
+
+# =============================================================================
+def dfs_paths(matrix, start):
+    def inner(matrix, rows, cols, start, count, path=None):
+        if path is None:
+            path = [start]
+
+        x, y = start
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < rows and 0 <= ny < cols:
+                next = (nx, ny)
+                print(f"[{count}]{path} : {next}")
+                if matrix[nx][ny] == 9:
+                    count = +1
+                    continue
+
+                if next not in path and matrix[x][y] + 1 == matrix[nx][ny]:
+                    new_path = path + [next]
+                    count += inner(matrix, rows, cols, next, count, new_path)
+
+        return count
+
+    return inner(matrix, len(matrix), len(matrix[0]), start, 0)
 
 
 def part2(file):
-    topo_map = parse(file)
-    # return sum([len(bfs(topo_map, zero_cell)) for zero_cell in find_zeros(topo_map)])
-    pass
+    topo = parse(file)
+    zeros = find_zeros(topo)
+    results = [dfs_paths(topo, zero) for zero in zeros]
+    print(results)
+    return sum(results)
 
+
+# =============================================================================
 if __name__ == "__main__":
-    print(f"1:example1 (1): {part1('example1')}")
-    print(f"1:example2 (2): {part1('example2')}")
-    print(f"1:example3 (4): {part1('example3')}")
-    print(f"1:example4 (3): {part1('example4')}")
-    print(f"1:example5 (36): {part1('example5')}")
-    print(f"1:example (674): {part1('puzzle_input')}")
+    # print(f"1:example1 (1): {part1('example1')}")
+    # print(f"1:example2 (2): {part1('example2')}")
+    # print(f"1:example3 (4): {part1('example3')}")
+    # print(f"1:example4 (3): {part1('example4')}")
+    # print(f"1:example5 (36): {part1('example5')}")
+    # print(f"1:example (674): {part1('puzzle_input')}")
+
+    print(f"2:example_6 (3): {part2('example_6')}")
+    # print(f"2:example_7 (13): {part1('example_7')}")
+    # print(f"2:example_8 (121): {part1('example_8')}")
+    # print(f"2:example_9 (81): {part1('example_9')}")
+    # print(f"2:example (): {part1('puzzle_input')}")
