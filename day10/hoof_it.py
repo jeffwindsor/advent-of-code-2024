@@ -7,6 +7,7 @@ directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
 
 # =============================================================================
 def find_reachable_nines(matrix, starts):
+    """BFS all reachable trailends shown as a nine"""
     rows, cols = len(matrix), len(matrix[0])
     queue = deque([starts])
     visited = set([starts])
@@ -29,61 +30,72 @@ def find_reachable_nines(matrix, starts):
     return leaves
 
 
-def find_zeros(matrix):
-    rows, cols = len(matrix), len(matrix[0])
-    return [(x, y) for y in range(rows) for x in range(cols) if matrix[x][y] == 0]
+def find_trailheads(topographic_map):
+    """Identify all positions with height 0 as trailheads."""
+    trailheads = []
+    for r, row in enumerate(topographic_map):
+        for c, height in enumerate(row):
+            if height == 0:
+                trailheads.append((r, c))
+    return trailheads
+
+
+def dfs(map, row, col, current_path, memo):
+    """Recursive DFS to explore all distinct hiking trails."""
+    key = (row, col, tuple(current_path))
+    if key in memo:
+        return memo[key]
+
+    height = map[row][col]
+    if height == 9:
+        # Reached the end of a trail
+        return {tuple(current_path)}
+
+    trails = set()
+    for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:  # Up, Down, Left, Right
+        nr, nc = row + dr, col + dc
+        if 0 <= nr < len(map) and 0 <= nc < len(map[0]) and map[nr][nc] == height + 1:
+            trails |= dfs(map, nr, nc, current_path + [(nr, nc)], memo)
+
+    memo[key] = trails
+    return trails
+
+
+def calculate_ratings(map, trailheads):
+    """Calculate the rating for each trailhead."""
+    total_rating = 0
+    memo = {}
+
+    for r, c in trailheads:
+        trails = dfs(map, r, c, [(r, c)], memo)
+        total_rating += len(trails)
+
+    return total_rating
 
 
 def part1(file):
     topo_map = parse(file)
-    zeros = find_zeros(topo_map)
-    return sum([len(find_reachable_nines(topo_map, z)) for z in zeros])
-
-
-# =============================================================================
-def dfs_paths(matrix, start):
-    def inner(matrix, rows, cols, start, count, path=None):
-        if path is None:
-            path = [start]
-
-        x, y = start
-        for dx, dy in directions:
-            nx, ny = x + dx, y + dy
-            if 0 <= nx < rows and 0 <= ny < cols:
-                next = (nx, ny)
-                print(f"[{count}]{path} : {next}")
-                if matrix[nx][ny] == 9:
-                    count = +1
-                    continue
-
-                if next not in path and matrix[x][y] + 1 == matrix[nx][ny]:
-                    new_path = path + [next]
-                    count += inner(matrix, rows, cols, next, count, new_path)
-
-        return count
-
-    return inner(matrix, len(matrix), len(matrix[0]), start, 0)
+    trailheads = find_trailheads(topo_map)
+    return sum([len(find_reachable_nines(topo_map, z)) for z in trailheads])
 
 
 def part2(file):
     topo = parse(file)
-    zeros = find_zeros(topo)
-    results = [dfs_paths(topo, zero) for zero in zeros]
-    print(results)
-    return sum(results)
+    trailheads = find_trailheads(topo)
+    return calculate_ratings(topo, trailheads)
 
 
 # =============================================================================
 if __name__ == "__main__":
-    # print(f"1:example1 (1): {part1('example1')}")
-    # print(f"1:example2 (2): {part1('example2')}")
-    # print(f"1:example3 (4): {part1('example3')}")
-    # print(f"1:example4 (3): {part1('example4')}")
-    # print(f"1:example5 (36): {part1('example5')}")
-    # print(f"1:example (674): {part1('puzzle_input')}")
+    print(f"1:example1 [Expect 1 : Actual {part1('example1')}]")
+    print(f"1:example2 [Expect 2 : Actual {part1('example2')}]")
+    print(f"1:example3 [Expect 4 : Actual {part1('example3')}]")
+    print(f"1:example4 [Expect 3 : Actual {part1('example4')}]")
+    print(f"1:example5 [Expect 36 : Actual {part1('example5')}]")
+    print(f"1:puzzle_input [Expect 674 : Actual {part1('puzzle_input')}]")
 
-    print(f"2:example_6 (3): {part2('example_6')}")
-    # print(f"2:example_7 (13): {part1('example_7')}")
-    # print(f"2:example_8 (121): {part1('example_8')}")
-    # print(f"2:example_9 (81): {part1('example_9')}")
-    # print(f"2:example (): {part1('puzzle_input')}")
+    print(f"2:example_6 [Expect 3 : Actual {part2('example_6')}]")
+    print(f"2:example_7 [Expect 13 : Actual {part2('example_7')}]")
+    print(f"2:example_8 [Expect 227 : Actual {part2('example_8')}]")
+    print(f"2:example_9 [Expect 81 : Actual {part2('example_9')}]")
+    print(f"2:puzzle_input [Expect 1372 : Actual {part2('puzzle_input')}]")
