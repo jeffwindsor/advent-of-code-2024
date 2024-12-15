@@ -1,9 +1,12 @@
 EMPTY = -1
+
+
 def parse_value(value):
     if value.isdigit():
         return int(value)
     else:
         return EMPTY
+
 
 def parse(file):
     with open(file, "r") as file:
