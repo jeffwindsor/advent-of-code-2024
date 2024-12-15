@@ -1,59 +1,55 @@
 from parser import parse
 
-
-def change_stone(stone):
-    # If the stone is engraved with the number 0, it is replaced by a stone engraved with the number 1.
-    if stone == 0:
-        return 1
-    # If the stone is engraved with a number that has an even number of digits, it is replaced by two stones.
-    # The left half of the digits are engraved on the new left stone, and the right half of the digits are
-    # engraved on the new right stone. (The new numbers don't keep extra leading zeroes:
-    # 1000 would become stones 10 and 0.)
-    sl = len(str(stone))
-    if sl % 2 == 0:
-        i = sl // 2
-        ss = str(stone)
-        return [int(ss[:i]), int(ss[i:])]
-    # If none of the other rules apply, the stone is replaced by a new stone; the old stone's number
-    # multiplied by 2024 is engraved on the new stone.
-    return stone * 2024
+from collections import defaultdict
 
 
-def blink(stones):
-    result = []
-    for stone in stones:
-        changed = change_stone(stone)
-        if isinstance(changed, list):
-            result.extend(changed)
-        else:
-            result.append(changed)
-    return result
+def count_stones_after_blinks_optimized(initial_stones, blinks):
+    """
+    Simulates the evolution of stones using a dictionary to track counts of unique stones.
+
+    :param initial_stones: List[int] - The initial arrangement of stones.
+    :param blinks: int - The number of blinks to simulate.
+    :return: int - The total number of stones after the simulation.
+    """
+    # Initialize the dictionary with counts of initial stones
+    stone_counts = defaultdict(int)
+    for stone in initial_stones:
+        stone_counts[stone] += 1
+
+    for _ in range(blinks):
+        next_stone_counts = defaultdict(int)
+
+        for stone, count in stone_counts.items():
+            if stone == 0:
+                # Rule 1: Replace 0 with 1
+                next_stone_counts[1] += count
+            elif len(str(stone)) % 2 == 0:
+                # Rule 2: Split the stone into two halves
+                str_stone = str(stone)
+                mid = len(str_stone) // 2
+                left = int(str_stone[:mid])
+                right = int(str_stone[mid:])
+                next_stone_counts[left] += count
+                next_stone_counts[right] += count
+            else:
+                # Rule 3: Multiply the stone by 2024
+                next_stone_counts[stone * 2024] += count
+
+        stone_counts = next_stone_counts
+
+    # Return the total number of stones
+    return sum(stone_counts.values())
 
 
-def part1(file, blinks):
+def answer(file, blinks):
     stones = parse(file)
-    # print(f"Original: {stones}")
-    for b in range(blinks):
-        stones = blink(stones)
-        # print(f"[{b}]: {stones}")
-
-    return len(stones)
-
-
-def part2(file, blinks):
-    pass
+    return count_stones_after_blinks_optimized(stones, blinks)
 
 
 # =============================================================================
 if __name__ == "__main__":
-    print(f"1:example1 (7): {part1('example1',1)}")
-    print(f"1:example2 (22): {part1('example2',6)}")
-    print(f"1:example2 (55312): {part1('example2', 25)}")
-    print(f"part 1 (222461): {part1('puzzle_input', 25)}")
-    print(f"part 2 : {part2('puzzle_input', 75)}")
-
-    # print(f"2:example_6 (3): {part2('example_6')}")
-    # print(f"2:example_7 (13): {part1('example_7')}")
-    # print(f"2:example_8 (121): {part1('example_8')}")
-    # print(f"2:example_9 (81): {part1('example_9')}")
-    # print(f"2:example (): {part1('puzzle_input')}")
+    print(f"1:example1 (Expected 7 : Accepted {answer('example1',1)})")
+    print(f"1:example2 (Expected 22 : Accepted {answer('example2',6)})")
+    print(f"1:example2 (Expected 55312 : Accepted {answer('example2', 25)})")
+    print(f"1: (Expected 222461: Accepted {answer('puzzle_input', 25)})")
+    print(f"2: (Expected 264350935776416 : Accepted {answer('puzzle_input', 75)})")
