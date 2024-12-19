@@ -9,11 +9,9 @@ def parse_file(filepath):
     Parse the warehouse map and movement commands.
     """
     with open(filepath, "r") as file:
-        warehouse_map, moves = file.read().split("\n\n")
+        warehouse_map, move_lines = file.read().split("\n\n")
 
-    grid = [list(row) for row in warehouse_map.splitlines()]
-    commands = "".join(moves.splitlines())
-    return grid, commands
+    return warehouse_map, "".join(move_lines.splitlines())
 
 
 if __name__ == "__main__":

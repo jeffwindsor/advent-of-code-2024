@@ -22,6 +22,7 @@ ROBOT = "@"
 SPACE = "."
 WALL = "#"
 BOX = "O"
+BOX2 = "[]"
 
 
 def print_grid(g):
@@ -95,13 +96,20 @@ def calculate_gps_sum(grid):
     return total_gps
 
 
-def part1(filepath):
+def widen(warehouse_map):
+    replacements = [("#", "##"), ("O", "[]"), (".", ".."), ("@", "@.")]
+
+    for old, new in replacements:
+        warehouse_map = warehouse_map.replace(old, new)
+
+    return warehouse_map
+
+
+def part2(filepath):
     warehouse_map, commands = parse_file(filepath)
-    final_grid = [list(row) for row in warehouse_map.splitlines()]
-    return calculate_gps_sum(final_grid)
+    return widen(warehouse_map)
 
 
 if __name__ == "__main__":
-    print(f"1: small example (Expected 2028, Actual {part1('small_example')})")
-    print(f"1: example (Expected 10092, Actual {part1('example')})")
-    print(f"1: puzzle_input (Expected 1465523, Actual {part1('puzzle_input')})")
+    print(f"2: small example 2 (Expected 105, Actual \n{part2('small_example2')}")
+    print(f"2: example2 (Expected 9021, Actual \n{part2('example2')}")
