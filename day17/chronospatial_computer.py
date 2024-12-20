@@ -64,6 +64,25 @@ def run_program(program, reg_a, reg_b, reg_c):
     return ",".join(map(str, output))
 
 
+def find_lowest_a_for_self_replicating_program(program, reg_b, reg_c):
+    # Test A values starting from 1 upward
+    A = 1
+    while True:
+        output = run_program(program, A, reg_b, reg_c)
+        # Convert output to a list of integers for comparison
+        output_program = list(map(int, output.split(",")))
+        if output_program == program:
+            return A
+        A += 1
+
+
 if __name__ == "__main__":
-    print(f"p1.e1 (4,6,3,5,6,3,5,2,1,0): {run_program([0,1,5,4,3,0],729,0,0)}")
-    print(f"p1.pi (): {run_program([2,4,1,3,7,5,4,1,1,3,0,3,5,5,3,0],37283687,0,0)}")
+    # print(f"p1.e1 (4,6,3,5,6,3,5,2,1,0): {run_program([0,1,5,4,3,0],729,0,0)}")
+    # print(f"p1.pi (): {run_program([2,4,1,3,7,5,4,1,1,3,0,3,5,5,3,0],37283687,0,0)}")
+
+    print(
+        f"p2.e2 (117440): {find_lowest_a_for_self_replicating_program([0, 3, 5, 4, 3, 0],0,0)}"
+    )
+    print(
+        f"p2.pi (): {find_lowest_a_for_self_replicating_program([2,4,1,3,7,5,4,1,1,3,0,3,5,5,3,0],0,0)}"
+    )
