@@ -1,11 +1,15 @@
+import utils.runners as R
+import utils.files as F
 from collections import Counter
-from utils import read_data_as_lines, run
+
+DAY = 1
 
 
 def parse_data(file):
-    lines = read_data_as_lines(1, file)
-    number_pairs = [tuple(map(int, line.split("   "))) for line in lines]
-    return tuple(zip(*number_pairs))
+    lines = F.read_data_as_lines(DAY, file)
+    numbers_by_line = F.split_and_map(int, "   ", lines)
+    # put first numbers in a list, and second number of line in a list
+    return list(zip(*numbers_by_line))
 
 
 def calculate_total_distance(file):
@@ -20,7 +24,7 @@ def calculate_weighted_sum(file):
 
 
 if __name__ == "__main__":
-    run(
+    R.run(
         [
             ("p1.e ", calculate_total_distance, "example", 11),
             ("p1.pi", calculate_total_distance, "puzzle_input", 2066446),
