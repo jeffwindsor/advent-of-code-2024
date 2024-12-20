@@ -1,16 +1,10 @@
-from collections import deque, defaultdict
-from utils import run, read_data_as_lines
+import utils.files as F
+import utils.matrix_2d as M2
+import utils.runners as R
+from collections import deque
 
-
-def parse_input(grid):
-    start, end = None, None
-    for i, row in enumerate(grid):
-        for j, cell in enumerate(row):
-            if cell == "S":
-                start = (i, j)
-            elif cell == "E":
-                end = (i, j)
-    return start, end
+START = "S"
+END = "E"
 
 
 def bfs(grid, start, end):
@@ -47,19 +41,19 @@ def bfs(grid, start, end):
 
 
 def solve_race_condition(grid):
-    start, end = parse_input(grid)
+    start, end = M2.find(grid, START), g.find(grid, END)
     shortest_time = bfs(grid, start, end)
     return shortest_time
 
 
 def part1(filename):
-    grid = read_data_as_lines(20, filename)
+    grid = F.read_data_as_lines(20, filename)
     shortest_time = solve_race_condition(grid)
     return shortest_time
 
 
 if __name__ == "__main__":
-    run(
+    R.run(
         [
             (
                 "p1.e",

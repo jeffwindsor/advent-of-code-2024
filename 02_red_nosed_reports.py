@@ -1,11 +1,13 @@
+import utils.files as F
+import utils.runners as R
 from itertools import pairwise
-from utils import read_data_as_lines, run
+
+DAY = 2
 
 
 def parse(filepath):
-    lines = read_data_as_lines(2, filepath)
-    numbers = [list(map(int, line.split())) for line in lines]
-    return numbers
+    lines = F.read_data_as_lines(DAY, filepath)
+    return F.split_and_map(int, " ", lines)
 
 
 def is_safe(report):
@@ -33,7 +35,7 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    run(
+    R.run(
         [
             ("p1.e ", part1, "example", 2),
             ("p1.pi", part1, "puzzle_input", 306),
