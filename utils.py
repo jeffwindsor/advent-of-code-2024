@@ -11,4 +11,7 @@ def read_data_as_lines(day, file):
 def run(test_cases) -> None:
     for name, func, input_file, expected in test_cases:
         actual = func(input_file)
-        print(f"{name}: [{expected == actual}] {expected} == {actual}")
+        if expected == actual:
+            print(f"{name}: [True] Result: {actual}")
+        else:
+            print(f"{name}: [False] {expected} != {actual}")
