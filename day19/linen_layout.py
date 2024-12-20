@@ -1,46 +1,57 @@
+# from collections import defaultdict
+
+
 def parse_input(file_path: str):
     with open(file_path, "r") as file:
-        lines = file.readlines()
+        input = file.read()
 
-    patterns = lines[0].strip()
-    designs = [line.strip() for line in lines[2:]]
+    ps, ds = input.strip().split("\n\n")
+    patterns = [p.strip() for p in ps.split(",")]
+    designs = [d.strip() for d in ds.splitlines()]
     return patterns, designs
 
 
-def count_possible_designs(towel_patterns, desired_designs):
-    # Parse towel patterns
-    towel_patterns = towel_patterns.split(", ")
+def count_possible_arrangements(pattern, available_patterns, memo=None, start=0):
+    if memo is None:
+        memo = {}
 
-    # Initialize counter for feasible designs
+    if start == len(pattern):
+        return 1
+
+    if start in memo:
+        return memo[start]
+
+    count = 0
+    for towel in available_patterns:
+        if (
+            start + len(towel) <= len(pattern)
+            and pattern[start : start + len(towel)] == towel
+        ):
+            count += count_possible_arrangements(
+                pattern, available_patterns, memo, start + len(towel)
+            )
+
+    memo[start] = count
+    return count
+
+
+def solve_both_parts(patterns, designs):
+
+    # Part 1: Count possible designs
     possible_count = 0
+    # Part 2: Sum of all possible arrangements
+    total_arrangements = 0
 
-    # Check each desired design
-    for design in desired_designs:
-        # print(design)
-        n = len(design)
-        dp = [False] * (n + 1)
-        dp[0] = True  # Base case: empty string can always be constructed
-
-        # Fill dp array
-        for i in range(1, n + 1):
-            for pattern in towel_patterns:
-                # Check if the pattern fits the current position
-                if i >= len(pattern) and design[i - len(pattern) : i] == pattern:
-                    dp[i] = dp[i] or dp[i - len(pattern)]
-
-        # If the full design is feasible, increment the counter
-        if dp[n]:
-            # print("  YES")
+    for design in designs:
+        arrangements = count_possible_arrangements(design, patterns)
+        if arrangements > 0:
             possible_count += 1
+        total_arrangements += arrangements
 
-    return possible_count
-
-
-def part1(filepath):
-    return count_possible_designs(*parse_input(filepath))
-    # return parse_input(filepath)
+    return possible_count, total_arrangements
 
 
 if __name__ == "__main__":
-    # print(f"p1.e (6): {part1('example')}")
-    print(f"p1.pi (): {part1('puzzle_input')}")
+    print(f"parse e: {parse_input('example')}")
+    print(f"example: {solve_both_parts(*parse_input('example'))}")
+    print(f"puzzle input: {solve_both_parts(*parse_input('puzzle_input'))}")
