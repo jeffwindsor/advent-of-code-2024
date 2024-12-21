@@ -1,31 +1,38 @@
-from parser import parse
+import utils.runners as R
+import utils.files as F
+import utils.matrix_2d as M2
 
-UP = (-1, 0)
-RIGHT = (0, 1)
-DOWN = (1, 0)
-LEFT = (0, -1)
-
-
-def turn(direction):
-    if direction == UP:
-        return RIGHT
-    elif direction == RIGHT:
-        return DOWN
-    elif direction == DOWN:
-        return LEFT
-    elif direction == LEFT:
-        return UP
-    else:
-        raise Exception("Direction not recognized")
+DAY = 6
+GUARD_CHAR = "^"
+OBSTRUCTION_CHAR = "#"
+MOVES = M2.DIRECTIONS_CARDINAL
+TURN = M2.TURNS_CLOCKWISE
+UP = M2.UP
+add = M2.coord_add
 
 
-def add(coord, direction):
-    return (coord[0] + direction[0], coord[1] + direction[1])
+def parse(file):
+    # read file contents
+    lines = F.read_data_as_lines(DAY, file)
+
+    # Initialize variables
+    guard_coordinate = None
+    obstruction_coordinates = set()
+
+    # Process each line
+    for row, line in enumerate(lines):
+        # Strip removes newlines and trailing spaces
+        for col, char in enumerate(line.strip()):
+            if char == GUARD_CHAR:
+                guard_coordinate = (row, col)
+            elif char == OBSTRUCTION_CHAR:
+                obstruction_coordinates.add((row, col))
+
+    return guard_coordinate, obstruction_coordinates, (row, col)
 
 
 def is_out_of_bounds(limits, coord):
-    return (coord[0] < 0 or coord[0] > limits[0]
-            or coord[1] < 0 or coord[1] > limits[1])
+    return coord[0] < 0 or coord[0] > limits[0] or coord[1] < 0 or coord[1] > limits[1]
 
 
 def find_path_unique_coords(direction, coord, obstructions, limits):
@@ -34,7 +41,7 @@ def find_path_unique_coords(direction, coord, obstructions, limits):
         next_coord = add(coord, direction)
         if next_coord in obstructions:
             # Obstructed must turn
-            direction = turn(direction)
+            direction = TURN[direction]
         else:
             # Unobstructed must advance
             unique_coords.add(coord)
@@ -62,7 +69,7 @@ def find_possible_loop_in_path(direction, coord, obstructions, limits):
         if next_coord in obstructions:
             # print("Turn Vec: ", visited_vectors)
             # Obstructed must turn
-            direction = turn(direction)
+            direction = TURN[direction]
         else:
             # Unobstructed must advance
             coord = next_coord
@@ -76,20 +83,18 @@ def part2(file):
     # test added obstructions one by one, using path coords to lower test set
     results = []
     unique_path_coords = find_path_unique_coords(
-        UP, guard_start_coord, obstructions, limits)
+        UP, guard_start_coord, obstructions, limits
+    )
     for obstruction in unique_path_coords:
         test_obstructions = obstructions.copy()
         test_obstructions.add(obstruction)
-        results.append(find_possible_loop_in_path(
-            UP, guard_start_coord, test_obstructions, limits))
+        results.append(
+            find_possible_loop_in_path(UP, guard_start_coord, test_obstructions, limits)
+        )
 
     return sum(results)
 
 
 if __name__ == "__main__":
-    print(f"part 1 example should be 41: {part1('example')}")
-    print(f"part 1 should be 5095: {part1('puzzle_input')}")
-    print(f"part 2 loop_test should be True: {
-          find_possible_loop_in_path(UP, *parse('loop_test'))}")
-    print(f"part 2 example should be 6: {part2('example')}")
-    print(f"part 2: {part2('puzzle_input')}")
+    R.run(part1, [("example", 41), ("puzzle_input", 5095)])
+    R.run(part2, [("example", 6), ("puzzle_input", 1933)])
