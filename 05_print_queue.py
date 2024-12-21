@@ -1,20 +1,19 @@
-import utils.runners as R
-import utils.files as F
+from utils.runners import run
+from utils.files import read_data
 from collections import defaultdict
 from functools import cmp_to_key
-
-DAY = 5
 
 
 def parse(file):
     # read file contents
-    file_contents = F.read_data(DAY, file)
+    file_contents = read_data(5, file)
 
     # Splitting the file contents into two sections
     sections = file_contents.strip().split("\n\n")
 
     # Section 1: Parsing page ordering rules into a dictionary
     page_ordering_rules = defaultdict(list)
+
     for line in sections[0].splitlines():
         key, value = map(int, line.strip().split("|"))
         page_ordering_rules[key].append(value)
@@ -27,25 +26,8 @@ def parse(file):
     return page_ordering_rules, page_updates
 
 
-def pprint(file):
-    print(f"File: {file}")
-    page_ordering_rules, page_updates = parse(file)
-
-    print("Page Ordering Rules (Dictionary):")
-    for key, values in page_ordering_rules.items():
-        print(f"{key}: {values}")
-
-    print("\nPage Updates (List of Lists):")
-    for update in page_updates:
-        print(update)
-
-
 def middle_numbers(xss):
     return [xs[len(xs) // 2] for xs in xss]
-
-
-def intersection(a, b):
-    return list(set(a) & set(b))
 
 
 def is_ordered(rules, pages):
@@ -56,7 +38,7 @@ def is_ordered(rules, pages):
             next
         # if any pages are in the intersection of previous pages and rules,
         # the list is unordered
-        if intersection(pages[:i], rules[p]):
+        if set(pages[:i]) & set(rules[p]):
             return False
 
     return True
@@ -97,5 +79,5 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    R.run(part1, [("example", 143), ("puzzle_input", 7198)])
-    R.run(part2, [("example", 123), ("puzzle_input", 4230)])
+    run(part1, [("example", 143), ("puzzle_input", 7198)])
+    run(part2, [("example", 123), ("puzzle_input", 4230)])

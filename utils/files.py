@@ -41,7 +41,7 @@ def read_data(day, file):
     """
     try:
         with open(f"./data/{day}_{file}", "r") as file:
-            return file.read()
+            return file.read().strip()
     except FileNotFoundError as e:
         raise FileNotFoundError(f"File not found: {e.filename}")
     except IOError as e:

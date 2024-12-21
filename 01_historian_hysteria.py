@@ -1,4 +1,4 @@
-import utils.runners as R
+from utils.runners import run
 import utils.files as F
 from collections import Counter
 
@@ -24,5 +24,5 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    R.run(part1, [("example", 11), ("puzzle_input", 2066446)])
-    R.run(part2, [("example", 31), ("puzzle_input", 24931009)])
+    run(part1, [("example", 11), ("puzzle_input", 2066446)])
+    run(part2, [("example", 31), ("puzzle_input", 24931009)])

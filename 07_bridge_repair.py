@@ -1,9 +1,22 @@
-from parser import parse
 from itertools import product
+from utils.runners import run
+from utils.files import read_data_as_lines
 
-PLUS = '+'
-MULTIPLY = '*'
-CONCATENATE = '||'
+PLUS = "+"
+MULTIPLY = "*"
+CONCATENATE = "||"
+
+
+def parse_line(line):
+    answer, parts = line.strip().split(":")
+    parts = map(int, parts.split())
+    return (int(answer), list(parts))
+
+
+def parse(file):
+    lines = read_data_as_lines(7, file)
+    return [parse_line(line) for line in lines]
+
 
 def evaluate_expression(nums, operators):
     result = nums[0]
@@ -23,15 +36,17 @@ def is_goal_possible(goal, nums, operators):
         return nums[0] == goal
 
     # Test each operator combination
-    for operators in product(operators, repeat=n-1):
+    for operators in product(operators, repeat=n - 1):
         if evaluate_expression(nums, operators) == goal:
             return True
 
     return False
 
+
 def answer(file, operators):
-    success_numbers = [goal for goal, nums in parse(file)
-                       if is_goal_possible(goal, nums, operators)]
+    success_numbers = [
+        goal for goal, nums in parse(file) if is_goal_possible(goal, nums, operators)
+    ]
     # print(success_numbers)
     return sum(success_numbers)
 
@@ -45,7 +60,5 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    print(f"part 1 example should be 3749: {part1('example')}")
-    print(f"part 1 should be 5095: {part1('puzzle_input')}")
-    print(f"part 2 example should be 11387: {part2('example')}")
-    print(f"part 2: {part2('puzzle_input')}")
+    run(part1, [("example", 3749), ("puzzle_input", 1153997401072)])
+    run(part2, [("example", 11387), ("puzzle_input", 97902809384118)])

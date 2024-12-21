@@ -1,6 +1,6 @@
 import utils.files as F
 import utils.matrix_2d as M2
-import utils.runners as R
+from utils.runners import run
 from collections import deque
 
 START = "S"
@@ -53,7 +53,7 @@ def part1(filename):
 
 
 if __name__ == "__main__":
-    R.run(
+    run(
         [
             (
                 "p1.e",
