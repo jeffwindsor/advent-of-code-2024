@@ -13,21 +13,6 @@ def is_monotonic(lst):
     )
 
 
-def within_bounds(lst, lower, upper):
-    """
-    Checks if all elements in a list are within given bounds.
-
-    Args:
-        lst (list): List of elements to check.
-        lower (int/float): Lower bound.
-        upper (int/float): Upper bound.
-
-    Returns:
-        bool: True if all elements are within bounds, False otherwise.
-    """
-    return all(lower <= abs(x) <= upper for x in lst)
-
-
 def validate_sequence(report, lower_bound, upper_bound):
     """
     Validates if a report sequence is within bounds and monotonic.

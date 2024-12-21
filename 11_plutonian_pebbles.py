@@ -1,6 +1,11 @@
-from parser import parse
-
 from collections import defaultdict
+from utils.files import read_data
+from utils.runners import run
+
+
+def parse(file):
+    numbers = read_data(11, file).split()
+    return [int(n) for n in numbers]
 
 
 def count_stones_after_blinks_optimized(initial_stones, blinks):
@@ -41,15 +46,21 @@ def count_stones_after_blinks_optimized(initial_stones, blinks):
     return sum(stone_counts.values())
 
 
-def answer(file, blinks):
+def answer(args):
+    file, blinks = args
     stones = parse(file)
     return count_stones_after_blinks_optimized(stones, blinks)
 
 
 # =============================================================================
 if __name__ == "__main__":
-    print(f"1:example1 (Expected 7 : Accepted {answer('example1',1)})")
-    print(f"1:example2 (Expected 22 : Accepted {answer('example2',6)})")
-    print(f"1:example2 (Expected 55312 : Accepted {answer('example2', 25)})")
-    print(f"1: (Expected 222461: Accepted {answer('puzzle_input', 25)})")
-    print(f"2: (Expected 264350935776416 : Accepted {answer('puzzle_input', 75)})")
+    run(
+        answer,
+        [
+            (("example1", 1), 7),  # Expected: 7
+            (("example2", 6), 22),  # Expected: 22
+            (("example2", 25), 55312),  # Expected: 55312
+            (("puzzle_input", 25), 222461),  # Expected: 222461
+            (("puzzle_input", 75), 264350935776416),  # Expected: 264350935776416
+        ],
+    )

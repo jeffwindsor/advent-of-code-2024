@@ -1,4 +1,4 @@
-import utils.runners as R
+from utils.runners import run
 import utils.files as F
 from re import findall
 
@@ -42,5 +42,5 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    R.run(part1, [("example", 161), ("puzzle_input", 170807108)])
-    R.run(part2, [("example2", 48), ("puzzle_input", 74838033)])
+    run(part1, [("example", 161), ("puzzle_input", 170807108)])
+    run(part2, [("example2", 48), ("puzzle_input", 74838033)])

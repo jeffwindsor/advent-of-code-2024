@@ -1,11 +1,25 @@
-from parser import parse
-from itertools import repeat
+from itertools import repeat, islice
+from utils.runners import run
+from utils.files import read_data
+
+
+def parse(file):
+    numbers = read_data(9, file)
+    file_blocks = list(map(int, islice(numbers, 0, None, 2)))  # first numbers
+    free_blocks = list(map(int, islice(numbers, 1, None, 2)))  # second numbers
+
+    if len(file_blocks) > len(free_blocks):
+        free_blocks.append(0)
+
+    return file_blocks, free_blocks
+
 
 EMPTY_BLOCK = "."
 
 
 def checksum(disk):
     return sum([i * int(n) for i, n in enumerate(disk) if n != EMPTY_BLOCK])
+
 
 def part1(file):
     def expand(file_blocks, free_space):
@@ -14,7 +28,6 @@ def part1(file):
             result += repeat(str(i), file_blocks[i])
             result += repeat(EMPTY_BLOCK, free_space[i])
         return list(result)
-
 
     disk = expand(*parse(file))
     right = len(disk) - 1
@@ -52,7 +65,6 @@ def part2(file):
             result += repeat(EMPTY_BLOCK, free_space[i])
         return list(result)
 
-
     file_blocks, free_space = parse(file)
     # 2d array of moved_blocks
     moved_blocks = [[] for _ in range(len(file_blocks))]
@@ -87,10 +99,18 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    print(f"1:simple  (  60): {part1('example_simple')}")
-    print(f"1:example (1928): {part1('example')}")
-    print(f"1:example (6332189866718): {part1('puzzle_input')}")
+    test_cases_part1 = [
+        ("example_simple", 60),
+        ("example", 1928),
+        ("puzzle_input", 6332189866718),
+    ]
 
-    print(f"2:simple  ( 132): {part2('example_simple')}")
-    print(f"2:example (2858): {part2('example')}")
-    print(f"2:example (6353648390778): {part2('puzzle_input')}")
+    test_cases_part2 = [
+        ("example_simple", 132),  # Expected: 132
+        ("example", 2858),  # Expected: 2858
+        ("puzzle_input", 6353648390778),  # Expected: 6353648390778
+    ]
+
+    # Run the tests
+    run(part1, test_cases_part1)
+    run(part2, test_cases_part2)

@@ -1,5 +1,11 @@
-from parser import parse
+from utils.files import read_data_as_lines
+from utils.runners import run
 from collections import deque
+
+
+def parse(file):
+    return [list(line) for line in read_data_as_lines(12, file)]
+
 
 area = "a"
 perimeter = "p"
@@ -149,12 +155,21 @@ def part2(file):
 
 
 if __name__ == "__main__":
+    run(
+        part1,
+        [
+            ("example", 140),
+            ("example_xo", 772),
+            ("example_RIC", 1930),
+            ("puzzle_input", 1488414),
+        ],
+    )
     # print(f"part1 example (140): {part1('example')}")
     # print(f"part1 example_xo (772): {part1('example_xo')}")
     # print(f"part1 example_RIC (1930): {part1('example_RIC')}")
     # print(f"part1 puzzle_input (1488414): {part1('puzzle_input')}")
 
-    print(f"part2 example (80): {part2('example')}")
+    # print(f"part2 example (80): {part2('example')}")
     # print(f"part2 example_xo (436): {part2('example_xo')}")
     # print(f"part2 example_RIC (236): {part2('example_EE')}")
     # print(f"part2 example_RIC (386): {part2('example_AA')}")

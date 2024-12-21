@@ -1,18 +1,10 @@
-def parse(file):
-    with open(file, "r") as file:
-        lines = file.readlines()
-
+def parse_into_char_coords(lines, empty_char):
     result = {}
-
     for row, line in enumerate(lines):
         for col, char in enumerate(line.strip()):
-            if char == ".":
+            if char == empty_char:
                 continue
             if char not in result:
                 result[char] = []
             result[char].append((row, col))
-
-    return (row, col), result
-
-if __name__ == "__main__":
-    print(f"example: {parse('example')}")
+    return result

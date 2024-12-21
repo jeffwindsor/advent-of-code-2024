@@ -1,19 +1,13 @@
-import utils.runners as R
-import utils.files as F
-import utils.matrix_2d as M2
-
-DAY = 6
-GUARD_CHAR = "^"
-OBSTRUCTION_CHAR = "#"
-MOVES = M2.DIRECTIONS_CARDINAL
-TURN = M2.TURNS_CLOCKWISE
-UP = M2.UP
-add = M2.coord_add
+from utils.runners import run
+from utils.files import read_data_as_lines
+from utils.matrix_2d.coordinates import TURN_CLOCKWISE, UP, add
 
 
 def parse(file):
+    GUARD_CHAR = "^"
+    OBSTRUCTION_CHAR = "#"
     # read file contents
-    lines = F.read_data_as_lines(DAY, file)
+    lines = read_data_as_lines(6, file)
 
     # Initialize variables
     guard_coordinate = None
@@ -41,7 +35,7 @@ def find_path_unique_coords(direction, coord, obstructions, limits):
         next_coord = add(coord, direction)
         if next_coord in obstructions:
             # Obstructed must turn
-            direction = TURN[direction]
+            direction = TURN_CLOCKWISE[direction]
         else:
             # Unobstructed must advance
             unique_coords.add(coord)
@@ -69,7 +63,7 @@ def find_possible_loop_in_path(direction, coord, obstructions, limits):
         if next_coord in obstructions:
             # print("Turn Vec: ", visited_vectors)
             # Obstructed must turn
-            direction = TURN[direction]
+            direction = TURN_CLOCKWISE[direction]
         else:
             # Unobstructed must advance
             coord = next_coord
@@ -96,5 +90,5 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    R.run(part1, [("example", 41), ("puzzle_input", 5095)])
-    R.run(part2, [("example", 6), ("puzzle_input", 1933)])
+    run(part1, [("example", 41), ("puzzle_input", 5095)])
+    run(part2, [("example", 6), ("puzzle_input", 1933)])

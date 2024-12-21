@@ -1,5 +1,5 @@
 import utils.files as F
-import utils.runners as R
+from utils.runners import run
 from itertools import pairwise
 
 DAY = 2
@@ -35,5 +35,5 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    R.run(part1, [("example", 2), ("puzzle_input", 306)])
-    R.run(part2, [("example", 4), ("puzzle_input", 366)])
+    run(part1, [("example", 2), ("puzzle_input", 306)])
+    run(part2, [("example", 4), ("puzzle_input", 366)])
