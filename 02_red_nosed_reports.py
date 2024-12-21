@@ -35,11 +35,5 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    R.run(
-        [
-            ("p1.e ", part1, "example", 2),
-            ("p1.pi", part1, "puzzle_input", 306),
-            ("p2.e ", part2, "example", 4),
-            ("p2.pi", part2, "puzzle_input", 366),
-        ]
-    )
+    R.run(part1, [("example", 2), ("puzzle_input", 306)])
+    R.run(part2, [("example", 4), ("puzzle_input", 366)])

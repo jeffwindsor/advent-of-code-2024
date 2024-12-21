@@ -1,8 +1,15 @@
-from parser import parse
 from collections import deque
+from utils.matrix_2d import DIRECTIONS_CARDINAL
+from utils.files import read_data_as_lines
+from utils.runners import run
 
 
-directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
+def parse(file):
+    EMPTY = -1
+    return [
+        list(map(lambda x: int(x) if x.isdigit() else EMPTY, line.strip()))
+        for line in read_data_as_lines(10, file)
+    ]
 
 
 # =============================================================================
@@ -20,7 +27,7 @@ def find_reachable_nines(matrix, starts):
         if v == 9:
             leaves.add((x, y))
 
-        for dx, dy in directions:
+        for dx, dy in DIRECTIONS_CARDINAL:
             nx, ny = x + dx, y + dy
             if 0 <= nx < rows and 0 <= ny < cols:
                 next = (nx, ny)
@@ -87,15 +94,25 @@ def part2(file):
 
 # =============================================================================
 if __name__ == "__main__":
-    print(f"1:example1 [Expect 1 : Actual {part1('example1')}]")
-    print(f"1:example2 [Expect 2 : Actual {part1('example2')}]")
-    print(f"1:example3 [Expect 4 : Actual {part1('example3')}]")
-    print(f"1:example4 [Expect 3 : Actual {part1('example4')}]")
-    print(f"1:example5 [Expect 36 : Actual {part1('example5')}]")
-    print(f"1:puzzle_input [Expect 674 : Actual {part1('puzzle_input')}]")
+    run(
+        part1,
+        [
+            ("example1", 1),
+            ("example2", 2),
+            ("example3", 4),
+            ("example4", 3),
+            ("example5", 36),
+            ("puzzle_input", 674),
+        ],
+    )
 
-    print(f"2:example_6 [Expect 3 : Actual {part2('example_6')}]")
-    print(f"2:example_7 [Expect 13 : Actual {part2('example_7')}]")
-    print(f"2:example_8 [Expect 227 : Actual {part2('example_8')}]")
-    print(f"2:example_9 [Expect 81 : Actual {part2('example_9')}]")
-    print(f"2:puzzle_input [Expect 1372 : Actual {part2('puzzle_input')}]")
+    run(
+        part2,
+        [
+            ("example_6", 3),
+            ("example_7", 13),
+            ("example_8", 227),
+            ("example_9", 81),
+            ("puzzle_input", 1372),
+        ],
+    )
