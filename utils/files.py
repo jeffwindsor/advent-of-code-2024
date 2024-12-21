@@ -3,7 +3,7 @@ def split_and_map(func, split_on, lines):
 
 
 def read_data(day, file):
-    with open(f"./data/{day:02}_{file}", "r") as file:
+    with open(f"./data/{day}_{file}", "r") as file:
         lines = file.read()
     return lines
 
