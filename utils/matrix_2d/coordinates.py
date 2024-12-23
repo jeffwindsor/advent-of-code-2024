@@ -32,7 +32,7 @@ def is_between(x, higher, lower):
     return lower <= x <= higher
 
 
-def is_within_bounds(coord, higher_bounds, lower_bounds=ZERO):
+def is_within_bounds_inclusive(coord, higher_bounds, lower_bounds=ZERO):
     """Check if a coordinate is between 0,0 and bounds."""
     return is_between(coord[0], higher_bounds[0], lower_bounds[0]) and is_between(
         coord[1], higher_bounds[1], lower_bounds[1]
@@ -40,4 +40,6 @@ def is_within_bounds(coord, higher_bounds, lower_bounds=ZERO):
 
 
 def filter_within_bounds(coords, higher_bounds, lower_bounds=ZERO):
-    return [c for c in coords if is_within_bounds(c, higher_bounds, lower_bounds)]
+    return [
+        c for c in coords if is_within_bounds_inclusive(c, higher_bounds, lower_bounds)
+    ]

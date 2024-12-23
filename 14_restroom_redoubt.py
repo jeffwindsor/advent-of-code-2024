@@ -1,8 +1,15 @@
-from parser import parse_file
+from re import findall
+from utils.files import read_data_as_lines
+from utils.runners import run
 
-GRID_WIDTH = 101
-GRID_HEIGHT = 103
-SECONDS = 100
+
+def parse_line(line):
+    px, py, vx, vy = map(int, findall(r"-?\d+", line))
+    return ((px, py), (vx, vy))
+
+
+def parse_file(filepath):
+    return [parse_line(line) for line in read_data_as_lines(14, filepath)]
 
 
 def simulate_robot_positions(robots, seconds, width, height):
@@ -44,7 +51,8 @@ def calculate_safety_factor(quadrants):
     return result
 
 
-def part1(filepath, seconds, width, height):
+def part1(args):
+    filepath, seconds, width, height = args
     robots = parse_file(filepath)
     final_positions = simulate_robot_positions(robots, seconds, width, height)
     quadrants = count_quadrants(final_positions, width, height)
@@ -69,18 +77,15 @@ def find_minimum_safety_factor(robots, max_seconds, width, height):
     return best_second
 
 
-def part2(filepath, max_seconds, width, height):
+def part2(args):
+    filepath, max_seconds, width, height = args
     robots = parse_file(filepath)
     return find_minimum_safety_factor(robots, max_seconds, width, height)
 
 
 if __name__ == "__main__":
-    print(f"P1 example (Expected: 12): {part1('example',SECONDS,11,7)}")
-    print(
-        f"P1 puzzle_input (Expected: 218619324): {
-        part1('puzzle_input',SECONDS,GRID_WIDTH,GRID_HEIGHT)}"
+    run(
+        part1,
+        [(("example", 100, 11, 7), 12), (("puzzle_input", 100, 101, 103), 218619324)],
     )
-    print(
-        f"P2 puzzle_input (Expected: 6446): {
-        part2('puzzle_input', 7000, GRID_WIDTH,GRID_HEIGHT)}"
-    )
+    run(part2, [(("puzzle_input", 7000, 101, 103), 6446)])

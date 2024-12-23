@@ -15,7 +15,7 @@ def calculate_area_and_perimeter(grid):
     rows, cols = len(grid), len(grid[0])
     visited = [[False] * cols for _ in range(rows)]
 
-    def flood_fill(r, c, char):
+    def analyze_grid_regions(r, c, char):
         stack, area, perimeter = [(r, c)], 0, 0
         visited[r][c] = True
         while stack:
@@ -38,7 +38,7 @@ def calculate_area_and_perimeter(grid):
         for c in range(cols):
             if not visited[r][c]:
                 char = grid[r][c]
-                area, perimeter = flood_fill(r, c, char)
+                area, perimeter = analyze_grid_regions(r, c, char)
                 results.append((char, area, perimeter))
     return results
 
@@ -164,13 +164,13 @@ if __name__ == "__main__":
             ("puzzle_input", 1488414),
         ],
     )
-    # print(f"part1 example (140): {part1('example')}")
-    # print(f"part1 example_xo (772): {part1('example_xo')}")
-    # print(f"part1 example_RIC (1930): {part1('example_RIC')}")
-    # print(f"part1 puzzle_input (1488414): {part1('puzzle_input')}")
-
-    # print(f"part2 example (80): {part2('example')}")
-    # print(f"part2 example_xo (436): {part2('example_xo')}")
-    # print(f"part2 example_RIC (236): {part2('example_EE')}")
-    # print(f"part2 example_RIC (386): {part2('example_AA')}")
-    # print(f"part2 puzzle_input (1488414): {part2('puzzle_input')}")
+    # run(
+    #     part2,
+    #     [
+    #         ("example", 80),
+    #         ("example_xo", 436),
+    #         ("example_EE", 236),
+    #         ("example_AA", 386),
+    #         ("puzzle_input", None),
+    #     ],
+    # )

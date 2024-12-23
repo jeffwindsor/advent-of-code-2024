@@ -1,6 +1,22 @@
-from parser import parse
 import numpy as np
 from math import isclose
+from utils.files import read_data
+from utils.runners import run
+from re import findall
+
+
+def as_integers(xs):
+    return list(map(int, xs))
+
+
+def split_list(xs, n):
+    return [as_integers(xs[i : i + n]) for i in range(0, len(xs), n)]
+
+
+def parse(file):
+    text = read_data(13, file)
+    return split_list(findall(r"[XY][+=](\d+)", text), 6)
+
 
 tol = 0.00000000000001
 
@@ -34,7 +50,6 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    print(f"part 1 example (480): {part1('example')}")
-    print(f"part 1 (37128): {part1('puzzle_input')}")
-    print(f"part 2 example (875318608908): {part2('example')}")
-    print(f"part 2 (74914228471331): {part2('puzzle_input')}")
+    # print(f"example: {parse('example')}")
+    run(part1, [("example", 480), ("puzzle_input", 37128)])
+    run(part2, [("example", 875318608908), ("puzzle_input", 74914228471331)])

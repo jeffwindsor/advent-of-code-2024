@@ -2,7 +2,12 @@ from itertools import combinations
 from utils.files import read_data_as_lines
 from utils.runners import run
 from utils.matrix_2d import higher_bounds
-from utils.matrix_2d.coordinates import filter_within_bounds, is_within_bounds, add, sub
+from utils.matrix_2d.coordinates import (
+    filter_within_bounds,
+    is_within_bounds_inclusive,
+    add,
+    sub,
+)
 from utils.parsers.matrix_2D import parse_into_char_coords
 
 
@@ -11,24 +16,24 @@ def parse(file):
     return higher_bounds(lines), parse_into_char_coords(lines, ".")
 
 
-def extend_in_direction(coord, diff, combine_func, matrix_size):
+def extend_in_direction(coord, diff, combine_func, bounds):
     valid_coordinates = []
-    while is_within_bounds(coord, matrix_size):
+    while is_within_bounds_inclusive(coord, bounds):
         valid_coordinates.append(coord)
         coord = combine_func(coord, diff)
     return valid_coordinates
 
 
-def extended_pair(a, b, matrix_size):
+def extended_pair(a, b, bounds):
     diff = sub(a, b)
     potential_coords = [add(a, diff), sub(b, diff)]
-    return filter_within_bounds(potential_coords, matrix_size)
+    return filter_within_bounds(potential_coords, bounds)
 
 
-def extended_line(a, b, matrix_size):
+def extended_line(a, b, bounds):
     diff = sub(a, b)
-    return extend_in_direction(a, diff, add, matrix_size) + extend_in_direction(
-        b, diff, sub, matrix_size
+    return extend_in_direction(a, diff, add, bounds) + extend_in_direction(
+        b, diff, sub, bounds
     )
 
 

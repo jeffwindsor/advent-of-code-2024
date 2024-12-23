@@ -2,7 +2,7 @@ from utils.runners import run
 from utils.files import read_data_as_lines
 from utils.matrix_2d import higher_bounds
 from utils.matrix_2d.coordinates import (
-    is_within_bounds,
+    is_within_bounds_inclusive,
     DIRECTIONS_ALL,
     DIRECTIONS_INTERCARDINAL,
 )
@@ -19,7 +19,7 @@ def search_word_in_direction(word, matrix, r, c, dr, dc):
     for i, char in enumerate(word):
         new_row, new_col = r + i * dr, c + i * dc
         if (
-            not is_within_bounds((new_row, new_col), hb)
+            not is_within_bounds_inclusive((new_row, new_col), hb)
             or matrix[new_row][new_col] != char
         ):
             return False
