@@ -1,13 +1,11 @@
 from utils.runners import run
-import utils.files as F
+from utils.files import read_data_as_lines, split_and_map
 from collections import Counter
-
-DAY = 1
 
 
 def parse_data(file):
-    lines = F.read_data_as_lines(DAY, file)
-    numbers_by_line = F.split_and_map(int, "   ", lines)
+    lines = read_data_as_lines(1, file)
+    numbers_by_line = split_and_map(int, "   ", lines)
     # put first numbers in a list, and second number of line in a list
     return list(zip(*numbers_by_line))
 

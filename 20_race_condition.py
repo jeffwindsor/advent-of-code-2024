@@ -1,5 +1,5 @@
-import utils.files as F
-import utils.matrix_2d as M2
+from utils.files import read_data_as_lines
+from utils.matrix_2d import find_first
 from utils.runners import run
 from collections import deque
 
@@ -33,7 +33,7 @@ def bfs(grid, start, end):
             if (
                 0 <= nx < rows
                 and 0 <= ny < cols
-                and (grid[nx][ny] == "." or grid[nx][ny] == "E")
+                and (grid[nx][ny] == "." or grid[nx][ny] == END)
             ):
                 queue.append(((nx, ny), steps + 1))
 
@@ -41,25 +41,16 @@ def bfs(grid, start, end):
 
 
 def solve_race_condition(grid):
-    start, end = M2.find(grid, START), g.find(grid, END)
+    start, end = find_first(grid, START), find_first(grid, END)
     shortest_time = bfs(grid, start, end)
     return shortest_time
 
 
 def part1(filename):
-    grid = F.read_data_as_lines(20, filename)
+    grid = read_data_as_lines(20, filename)
     shortest_time = solve_race_condition(grid)
     return shortest_time
 
 
 if __name__ == "__main__":
-    run(
-        [
-            (
-                "p1.e",
-                part1,
-                "example",
-                84,
-            ),
-        ]
-    )
+    run(part1, [("example", 84)])

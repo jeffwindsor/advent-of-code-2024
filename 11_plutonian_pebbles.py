@@ -57,10 +57,10 @@ if __name__ == "__main__":
     run(
         answer,
         [
-            (("example1", 1), 7),  # Expected: 7
-            (("example2", 6), 22),  # Expected: 22
-            (("example2", 25), 55312),  # Expected: 55312
-            (("puzzle_input", 25), 222461),  # Expected: 222461
-            (("puzzle_input", 75), 264350935776416),  # Expected: 264350935776416
+            (("example1", 1), 7),
+            (("example2", 6), 22),
+            (("example2", 25), 55312),
+            (("puzzle_input", 25), 222461),
+            (("puzzle_input", 75), 264350935776416),
         ],
     )

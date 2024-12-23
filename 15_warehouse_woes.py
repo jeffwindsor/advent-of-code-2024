@@ -1,23 +1,14 @@
-from parser import parse_file
+from utils.files import read_data
+from utils.runners import run
 
-#     Simulate Movements:
-#         Determine the robot's initial position (@).
-#         For each command:
-#             Compute the intended new position of the robot.
-#             Check the tile at the intended position:
-#                 If it's a wall (#), do nothing.
-#                 If it's empty (.), move the robot.
-#                 If it's a box (O), check if the box can be pushed. If the push is valid (the next tile in the direction is empty), move the robot and the box. Otherwise, do nothing.
-#         Update the grid as moves are executed.
-#
-#     Calculate GPS Coordinates:
-#         For each box (O) in the final grid:
-#             Compute its GPS coordinate using the formula:
-#             GPS = 100 * row_index + column_index.
-#         Sum all the GPS coordinates.
-#
-#     Output the Result:
-#         Return the total sum of the GPS coordinates.
+
+def parse_file(filepath):
+    warehouse_map, move_lines = read_data(15, filepath).split("\n\n")
+    grid = [list(row) for row in warehouse_map.splitlines()]
+    commands = "".join(move_lines.splitlines())
+    return grid, commands
+
+
 ROBOT = "@"
 SPACE = "."
 WALL = "#"
@@ -96,12 +87,9 @@ def calculate_gps_sum(grid):
 
 
 def part1(filepath):
-    warehouse_map, commands = parse_file(filepath)
-    final_grid = [list(row) for row in warehouse_map.splitlines()]
+    final_grid = simulate_moves(*parse_file(filepath))
     return calculate_gps_sum(final_grid)
 
 
 if __name__ == "__main__":
-    print(f"1: small example (Expected 2028, Actual {part1('small_example')})")
-    print(f"1: example (Expected 10092, Actual {part1('example')})")
-    print(f"1: puzzle_input (Expected 1465523, Actual {part1('puzzle_input')})")
+    run(part1, [("small_example", 2028), ("example", 10092), ("puzzle_input", 1465523)])

@@ -1,95 +1,67 @@
-from collections import deque
-from utils.matrix_2d import DIRECTIONS_CARDINAL
+from utils.matrix_2d import bfs, get_value, find_all, find_paths_rec
+from utils.matrix_2d.coordinates import DIRECTIONS_CARDINAL
 from utils.files import read_data_as_lines
 from utils.runners import run
 
 
 def parse(file):
-    EMPTY = -1
+    # problem wants to follow path of increasing values from 0, so EMPTY = -1
     return [
-        list(map(lambda x: int(x) if x.isdigit() else EMPTY, line.strip()))
+        list(map(lambda x: int(x) if x.isdigit() else -1, line))
         for line in read_data_as_lines(10, file)
     ]
 
 
-# =============================================================================
-def find_reachable_nines(matrix, starts):
-    """BFS all reachable trailends shown as a nine"""
-    rows, cols = len(matrix), len(matrix[0])
-    queue = deque([starts])
-    visited = set([starts])
-    leaves = set()
-
-    while queue:
-        (x, y) = queue.popleft()
-        v = matrix[x][y]
-
-        if v == 9:
-            leaves.add((x, y))
-
-        for dx, dy in DIRECTIONS_CARDINAL:
-            nx, ny = x + dx, y + dy
-            if 0 <= nx < rows and 0 <= ny < cols:
-                next = (nx, ny)
-                if next not in visited and v + 1 == matrix[nx][ny]:
-                    queue.append(next)
-                    visited.add(next)
-    return leaves
+def find_reachable_nines(topographic_map, start_coord):
+    paths = bfs(
+        topographic_map,
+        start_coord,
+        DIRECTIONS_CARDINAL,
+        lambda p, n: get_value(topographic_map, p) + 1 == get_value(topographic_map, n),
+    )
+    nines = [coord for coord in set(paths) if get_value(topographic_map, coord) == 9]
+    return len(nines)
 
 
 def find_trailheads(topographic_map):
-    """Identify all positions with height 0 as trailheads."""
-    trailheads = []
-    for r, row in enumerate(topographic_map):
-        for c, height in enumerate(row):
-            if height == 0:
-                trailheads.append((r, c))
-    return trailheads
+    return find_all(topographic_map, 0)
 
 
-def dfs(map, row, col, current_path, memo):
-    """Recursive DFS to explore all distinct hiking trails."""
-    key = (row, col, tuple(current_path))
-    if key in memo:
-        return memo[key]
-
-    height = map[row][col]
-    if height == 9:
-        # Reached the end of a trail
-        return {tuple(current_path)}
-
-    trails = set()
-    for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:  # Up, Down, Left, Right
-        nr, nc = row + dr, col + dc
-        if 0 <= nr < len(map) and 0 <= nc < len(map[0]) and map[nr][nc] == height + 1:
-            trails |= dfs(map, nr, nc, current_path + [(nr, nc)], memo)
-
-    memo[key] = trails
-    return trails
+def is_valid_step(grid, current_coord, next_coord):
+    return get_value(grid, next_coord) == get_value(grid, current_coord) + 1
 
 
-def calculate_ratings(map, trailheads):
-    """Calculate the rating for each trailhead."""
-    total_rating = 0
-    memo = {}
+def is_end_of_path(grid, coord):
+    return get_value(grid, coord) == 9
 
-    for r, c in trailheads:
-        trails = dfs(map, r, c, [(r, c)], memo)
-        total_rating += len(trails)
 
-    return total_rating
+def find_path_count(matrix, start):
+    return len(
+        find_paths_rec(
+            matrix,
+            start,
+            [start],
+            is_valid_step,
+            is_end_of_path,
+            DIRECTIONS_CARDINAL,
+            dict(),
+        )
+    )
+
+
+def answer(file, path_function):
+    topographic_map = parse(file)
+    return sum(
+        [path_function(topographic_map, th) for th in find_trailheads(topographic_map)]
+    )
 
 
 def part1(file):
-    topo_map = parse(file)
-    trailheads = find_trailheads(topo_map)
-    return sum([len(find_reachable_nines(topo_map, z)) for z in trailheads])
+    return answer(file, find_reachable_nines)
 
 
 def part2(file):
-    topo = parse(file)
-    trailheads = find_trailheads(topo)
-    return calculate_ratings(topo, trailheads)
+    return answer(file, find_path_count)
 
 
 # =============================================================================

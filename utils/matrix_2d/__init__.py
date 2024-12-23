@@ -1,4 +1,4 @@
-from .coordinates import is_within_bounds as c_is_within_bounds
+from .coordinates import is_within_bounds_inclusive, add
 from collections import deque
 
 
@@ -7,20 +7,14 @@ def higher_bounds(matrix):
 
 
 def is_within_bounds(matrix, coord):
-    return c_is_within_bounds(coord, higher_bounds(matrix), (0, 0))
+    return is_within_bounds_inclusive(coord, higher_bounds(matrix), (0, 0))
 
 
-def find(matrix, value):
-    """
-    Finds the first occurrence of a value in a matrix.
+def get_value(matrix, coord):
+    return matrix[coord[0]][coord[1]]
 
-    Args:
-        matrix (list of list): The matrix to search.
-        value: The value to find.
 
-    Returns:
-        tuple: Coordinates of the value or None.
-    """
+def find_first(matrix, value):
     for r, row in enumerate(matrix):
         for c, cell in enumerate(row):
             if cell == value:
@@ -28,21 +22,32 @@ def find(matrix, value):
     return None
 
 
-def bfs(matrix, start):
+def find_all(matrix, value):
+    return [
+        (r, c)
+        for r, row in enumerate(matrix)
+        for c, cell in enumerate(row)
+        if cell == value
+    ]
+
+
+def always_true(coord):
+    return True
+
+
+def bfs(matrix, start, directions, can_visit):
     """
     Perform BFS on a 2D matrix.
 
     :param matrix: 2D list representing the matrix
     :param start: Tuple (x, y) representing the starting position
+    :param directions: list of coordinate offsets for each possible direction
     :return: List of visited positions in BFS order
     """
-    rows, cols = len(matrix), len(matrix[0])
-    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # Right, Down, Left, Up
+    hb = higher_bounds(matrix)
     queue = deque([start])
-    visited = set()
-    visited.add(start)
+    visited = set([start])
     order = []
-
     while queue:
         x, y = queue.popleft()
         order.append((x, y))
@@ -50,11 +55,57 @@ def bfs(matrix, start):
         for dx, dy in directions:
             nx, ny = x + dx, y + dy
             # Check bounds and if the cell has not been visited
-            if 0 <= nx < rows and 0 <= ny < cols and (nx, ny) not in visited:
+            if (
+                is_within_bounds_inclusive((nx, ny), hb)
+                and (nx, ny) not in visited
+                and can_visit((x, y), (nx, ny))
+            ):
                 visited.add((nx, ny))
                 queue.append((nx, ny))
 
     return order
+
+
+def find_paths_rec(
+    matrix, start, current_path, is_valid_step, is_end, directions, memo
+):
+    """
+    Generalized algorithm to find paths in a grid.
+
+    Args:
+        grid: 2D list representing the grid.
+        row, col: Current position in the grid.
+        current_path: List of (row, col) tuples representing the current path.
+        memo: Dictionary to store previously computed results.
+        is_valid_step: Function to validate a step (grid, row, col, next_row, next_col).
+        is_end: Function to check if a position is the end condition (grid, row, col).
+
+    Returns:
+        A set of unique paths (as tuples of (row, col)).
+    """
+    key = (start, tuple(current_path))
+    if key in memo:
+        return memo[key]
+
+    if is_end(matrix, start):
+        return {tuple(current_path)}
+
+    paths = set()
+    for direction in directions:
+        next = add(start, direction)
+        if is_within_bounds(matrix, next) and is_valid_step(matrix, start, next):
+            paths |= find_paths_rec(
+                matrix,
+                next,
+                current_path + [next],
+                is_valid_step,
+                is_end,
+                directions,
+                memo,
+            )
+
+    memo[key] = paths
+    return paths
 
 
 def flood_fill(matrix, x, y, new_value):
@@ -95,27 +146,3 @@ def flood_fill(matrix, x, y, new_value):
             queue.append((cx, cy - 1))  # Left
 
     return matrix
-
-
-# def simulate_matrix_movement(matrix, commands, directions):
-#     """
-#     Simulates movements in a matrix based on commands and directions.
-
-#     Args:
-#         matrix (list of list): The matrix to simulate on.
-#         commands (list of str): Movement commands.
-#         directions (dict): Mapping of commands to coordinate changes.
-
-#     Returns:
-#         list of list: Updated matrix after simulation.
-#     """
-#     robot_pos = find(matrix, "@")
-
-#     for command in commands:
-#         dr, dc = directions[command]
-#         r, c = robot_pos
-#         nr, nc = r + dr, c + dc
-#         if 0 <= nr < len(matrix) and 0 <= nc < len(matrix[0]) and matrix[nr][nc] == ".":
-#             matrix[r][c], matrix[nr][nc] = ".", "@"
-#             robot_pos = (nr, nc)
-#     return matrix

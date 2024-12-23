@@ -1,3 +1,6 @@
+from utils.runners import run
+
+
 def run_program(program, reg_a, reg_b, reg_c):
     # Initialize registers and instruction pointer
     A, B, C = reg_a, reg_b, reg_c
@@ -76,13 +79,29 @@ def find_lowest_a_for_self_replicating_program(program, reg_b, reg_c):
         A += 1
 
 
-if __name__ == "__main__":
-    # print(f"p1.e1 (4,6,3,5,6,3,5,2,1,0): {run_program([0,1,5,4,3,0],729,0,0)}")
-    # print(f"p1.pi (): {run_program([2,4,1,3,7,5,4,1,1,3,0,3,5,5,3,0],37283687,0,0)}")
+def part1(args):
+    return run_program(*args)
 
-    print(
-        f"p2.e2 (117440): {find_lowest_a_for_self_replicating_program([0, 3, 5, 4, 3, 0],0,0)}"
+
+def part2(args):
+    return find_lowest_a_for_self_replicating_program(*args)
+
+
+if __name__ == "__main__":
+    run(
+        part1,
+        [
+            (([0, 1, 5, 4, 3, 0], 729, 0, 0), "4,6,3,5,6,3,5,2,1,0"),
+            (
+                ([2, 4, 1, 3, 7, 5, 4, 1, 1, 3, 0, 3, 5, 5, 3, 0], 37283687, 0, 0),
+                "1,5,3,0,2,5,2,5,3",
+            ),
+        ],
     )
-    print(
-        f"p2.pi (): {find_lowest_a_for_self_replicating_program([2,4,1,3,7,5,4,1,1,3,0,3,5,5,3,0],0,0)}"
+    run(
+        part2,
+        [
+            (([0, 3, 5, 4, 3, 0], 0, 0), 117440),
+            (([2, 4, 1, 3, 7, 5, 4, 1, 1, 3, 0, 3, 5, 5, 3, 0], 0, 0), None, False),
+        ],
     )

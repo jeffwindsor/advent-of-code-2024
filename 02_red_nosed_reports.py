@@ -1,13 +1,11 @@
-import utils.files as F
+from utils.files import read_data_as_lines, split_and_map
 from utils.runners import run
 from itertools import pairwise
 
-DAY = 2
-
 
 def parse(filepath):
-    lines = F.read_data_as_lines(DAY, filepath)
-    return F.split_and_map(int, " ", lines)
+    lines = read_data_as_lines(2, filepath)
+    return split_and_map(int, " ", lines)
 
 
 def is_safe(report):
