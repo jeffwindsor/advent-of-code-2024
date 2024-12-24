@@ -1,56 +1,93 @@
 from utils.files import read_data_as_lines
-from utils.matrix_2d import find_first
+from utils.matrix_2d import find_first, size, is_within_bounds, get_value
+from utils.matrix_2d.coordinates import DIRECTIONS_CARDINAL, UP, DOWN, RIGHT, LEFT, add
 from utils.runners import run
-from collections import deque
 
+WALL = "#"
+SPACE = "."
 START = "S"
 END = "E"
 
 
-def bfs(grid, start, end):
-    rows, cols = len(grid), len(grid[0])
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+def parse(file):
+    return [list(row) for row in read_data_as_lines(20, file)]
 
-    # BFS queue: (position, steps)
-    queue = deque([(start, 0)])
+
+def dfs(maze, start, end):
+    stack = [
+        (start, [])
+    ]  # Stack contains tuples of (current_position, path_to_position)
     visited = set()
 
-    while queue:
-        (x, y), steps = queue.popleft()
+    while stack:
+        current, path = stack.pop()
 
-        # If reached the end, return the steps
-        if (x, y) == end:
-            return steps
-
-        # Mark as visited
-        if (x, y) in visited:
+        if current in visited:
             continue
-        visited.add((x, y))
 
-        for dx, dy in directions:
-            nx, ny = x + dx, y + dy
+        visited.add(current)
+        path = path + [current]  # Update the path to include the current position
 
+        if current == end:
+            return path  # Return the path when the end is reached
+
+        for direction in DIRECTIONS_CARDINAL:
+            next_position = add(current, direction)
             if (
-                0 <= nx < rows
-                and 0 <= ny < cols
-                and (grid[nx][ny] == "." or grid[nx][ny] == END)
+                is_within_bounds(maze, next_position)
+                and next_position not in visited
+                and get_value(maze, next_position) in (SPACE, END)
             ):
-                queue.append(((nx, ny), steps + 1))
+                stack.append((next_position, path))
 
-    return float("inf")  # Return infinity if no path is found
-
-
-def solve_race_condition(grid):
-    start, end = find_first(grid, START), find_first(grid, END)
-    shortest_time = bfs(grid, start, end)
-    return shortest_time
+    return []  # Return an empty list if no path is found
 
 
-def part1(filename):
-    grid = read_data_as_lines(20, filename)
-    shortest_time = solve_race_condition(grid)
-    return shortest_time
+def analyze_maze(maze, start, end):
+    rows, cols = size(maze)
+
+    path = dfs(maze, start, end)
+    if not path:
+        raise ValueError("No valid path between start and end in the original maze.")
+    path_index_by_coord = {coord: i for i, coord in enumerate(path)}
+    savings_count = {}
+    for current_index, current_coord in enumerate(path):
+        # look in cardinal directions for walls
+        for direction in DIRECTIONS_CARDINAL:
+            check_for_wall = add(current_coord, direction)
+            if (
+                is_within_bounds(maze, check_for_wall)
+                and get_value(maze, check_for_wall) == WALL
+            ):
+                # then one more in same direction for non wall
+                check_for_space = add(check_for_wall, direction)
+                if (
+                    is_within_bounds(maze, check_for_space)
+                    and get_value(maze, check_for_space) != WALL
+                ):
+                    space_index = path_index_by_coord[check_for_space]
+                    savings_index = space_index - current_index
+                    if savings_index > 0:
+                        # check index existence
+                        if savings_index not in savings_count:
+                            savings_count[savings_index] = 0
+                        # increment count for savings amount
+                        savings_count[savings_index] += 1
+
+    return savings_count
+
+
+def part1(file):
+    maze = parse(file)
+    start, end = find_first(maze, START), find_first(maze, END)
+    savings_count = analyze_maze(maze, start, end)
+
+    # print("  Savings breakdown:")
+    # for saving, count in sorted(savings_count.items()):
+    #     print(f"    {saving} spaces: {count}")
+
+    return sum(count for saving, count in savings_count.items() if saving > 100)
 
 
 if __name__ == "__main__":
-    run(part1, [("example", 84)])
+    run(part1, [("example", 0), ("puzzle_input", 1321)])
