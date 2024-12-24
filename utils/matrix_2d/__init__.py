@@ -2,8 +2,13 @@ from .coordinates import is_within_bounds_inclusive, add
 from collections import deque
 
 
+def size(matrix):
+    return (len(matrix), len(matrix[0]))
+
+
 def higher_bounds(matrix):
-    return (len(matrix) - 1, len(matrix[0]) - 1)
+    r, c = size(matrix)
+    return (r - 1, c - 1)
 
 
 def is_within_bounds(matrix, coord):
