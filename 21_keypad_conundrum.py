@@ -1,175 +1,7 @@
-# import numpy as NP
-from types import MappingProxyType  # "immutable/view-only dict wrapper"
-
-#      number pad           direction pad
-#     +---+---+---+            +---+---+
-#     | 7 | 8 | 9 |            | ^ | A |
-#     +---+---+---+        +---+---+---+
-#     | 4 | 5 | 6 |        | < | v | > |
-#     +---+---+---+        +---+---+---+
-#     | 1 | 2 | 3 |
-#     +---+---+---+
-#         | 0 | A |
-#         +---+---+
-#
-#  d-pad [A] = robot move forward, pushing n-pad button
-#  n-pad [A] = activate TODO
-#
-NPAD_MOVES = {
-    ("7", "8"): ">",
-    ("7", "9"): ">>",
-    ("7", "4"): "v",
-    ("7", "5"): "v>",
-    ("7", "6"): "v>>",
-    ("7", "3"): "vv",
-    ("7", "2"): "vv>",
-    ("7", "1"): "vv>>",
-    ("7", "0"): "vv>v",
-    ("7", "A"): "vv>v>",
-    ("8", "7"): "<",
-    ("8", "9"): ">",
-    ("8", "4"): "v<",
-    ("8", "5"): "v",
-    ("8", "6"): "v>",
-    ("8", "3"): "vv<",
-    ("8", "2"): "vv",
-    ("8", "1"): "vv>",
-    ("8", "0"): "vvv",
-    ("8", "A"): "vvv>",
-    ("9", "7"): "<<",
-    ("9", "8"): "<",
-    ("9", "4"): "v<<",
-    ("9", "5"): "v<",
-    ("9", "6"): "v",
-    ("9", "3"): "vv<<",
-    ("9", "2"): "vv<",
-    ("9", "1"): "vv",
-    ("9", "0"): "vvv<",
-    ("9", "A"): "vvv",
-    ("4", "7"): "^",
-    ("4", "8"): "^>",
-    ("4", "9"): "^>>",
-    ("4", "5"): ">",
-    ("4", "6"): ">>",
-    ("4", "3"): "v",
-    ("4", "2"): "v>",
-    ("4", "1"): "v>>",
-    ("4", "0"): "v>v",
-    ("4", "A"): "v>v>",
-    ("5", "7"): "^<",
-    ("5", "8"): "^",
-    ("5", "9"): "^>",
-    ("5", "4"): "<",
-    ("5", "6"): ">",
-    ("5", "3"): "v<",
-    ("5", "2"): "v",
-    ("5", "1"): "v>",
-    ("5", "0"): "vv",
-    ("5", "A"): "vv>",
-    ("6", "7"): "^<<",
-    ("6", "8"): "^<",
-    ("6", "9"): "^",
-    ("6", "4"): "<<",
-    ("6", "5"): "<",
-    ("6", "3"): "v<<",
-    ("6", "2"): "v<",
-    ("6", "1"): "v",
-    ("6", "0"): "vv<",
-    ("6", "A"): "vv",
-    ("3", "7"): "^^",
-    ("3", "8"): "^^>",
-    ("3", "9"): "^^>>",
-    ("3", "4"): "^",
-    ("3", "5"): "^>",
-    ("3", "6"): "^>>",
-    ("3", "2"): ">",
-    ("3", "1"): ">>",
-    ("3", "0"): ">v",
-    ("3", "A"): ">v>",
-    ("2", "7"): "^^<",
-    ("2", "8"): "^^",
-    ("2", "9"): "^^>",
-    ("2", "4"): "^<",
-    ("2", "5"): "^",
-    ("2", "6"): "^>",
-    ("2", "3"): "<",
-    ("2", "1"): ">",
-    ("2", "0"): "v",
-    ("2", "A"): "v>",
-    ("1", "7"): "^^<<",
-    ("1", "8"): "^^<",
-    ("1", "9"): "^^",
-    ("1", "4"): "^<<",
-    ("1", "5"): "^<",
-    ("1", "6"): "^",
-    ("1", "3"): "<<",
-    ("1", "2"): "<",
-    ("1", "0"): "v<",
-    ("1", "A"): "v",
-    ("0", "7"): "^^^<",
-    ("0", "8"): "^^^",
-    ("0", "9"): "^^^>",
-    ("0", "4"): "^^<",
-    ("0", "5"): "^^",
-    ("0", "6"): "^^>",
-    ("0", "3"): "^<",
-    ("0", "2"): "^",
-    ("0", "1"): "^>",
-    ("0", "A"): ">",
-    ("A", "7"): "^^^<<",
-    ("A", "8"): "^^^<",
-    ("A", "9"): "^^^",
-    ("A", "4"): "^^<<",
-    ("A", "5"): "^^<",
-    ("A", "6"): "^^",
-    ("A", "3"): "^<<",
-    ("A", "2"): "^<",
-    ("A", "1"): "^",
-    ("A", "0"): "<",
-}
-DPAD_MOVES = {
-    ("^", "<"): "^<",
-    ("^", "v"): "^",
-    ("^", ">"): "^>",
-    ("^", "A"): ">",
-    ("<", "^"): ">v",
-    ("<", "v"): ">",
-    ("<", ">"): ">>",
-    ("<", "A"): ">v>",
-    ("v", "^"): "v",
-    ("v", "<"): "<",
-    ("v", ">"): ">",
-    ("v", "A"): "v>",
-    (">", "^"): "v<",
-    (">", "<"): "<<",
-    (">", "v"): "<",
-    (">", "A"): "v",
-    ("A", "^"): "<",
-    ("A", "<"): "^<<",
-    ("A", "v"): "^<",
-    ("A", ">"): "^",
-}
-
-# bottom left is 0,0
-DPAD_BUTTON_COORDINATES = MappingProxyType(
-    {"^": (1, 1), "<": (0, 0), "v": (0, 1), ">": (0, 2), "A": (1, 2)}
-)
-# bottom left is 0,0
-NPAD_BUTTON_COORDINATES = MappingProxyType(
-    {
-        "0": (0, 1),
-        "1": (1, 0),
-        "2": (1, 1),
-        "3": (1, 2),
-        "4": (2, 0),
-        "5": (2, 1),
-        "6": (2, 2),
-        "7": (3, 0),
-        "8": (3, 1),
-        "9": (3, 2),
-        "A": (0, 2),
-    }
-)
+from utils.runners import run
+from utils.files import read_data_as_lines
+from scripts.pads_for_21 import DIRECTION_PAD, NUMBER_PAD
+from itertools import product
 
 #
 #     SHIP
@@ -181,10 +13,91 @@ NPAD_BUTTON_COORDINATES = MappingProxyType(
 #  start at [A] on d-pad
 #  start at [A] on n-pad
 #
+#  d-pad [A] = robot move forward, pushing n-pad button
+#  n-pad [A] = activate TODO
+#
 
-ROBOT_N_START_COORD = NPAD_BUTTON_COORDINATES["A"]
-ROBOT_D_START_COORD = DPAD_BUTTON_COORDINATES["A"]
 
+def generate_combinations(list_of_lists):
+    # Generate all combinations respecting the order of the sublists
+    combinations = product(*list_of_lists)
+    # Ensure strings are concatenated properly
+    return ["".join(combination) for combination in combinations]
+
+
+def find_shortest(strings):
+    if not strings:
+        return []
+    min_length = min(len(s) for s in strings)
+    return [s for s in strings if len(s) == min_length]
+
+
+def flatten(nested_list):
+    # Check if the input is a list of lists
+    if not isinstance(nested_list, list) or not all(
+        isinstance(sublist, list) for sublist in nested_list
+    ):
+        return nested_list
+
+    return sum(nested_list, [])
+
+
+def robot_moves(pad, button_pushes):
+    options = []
+    current_button = "A"
+    for push_button in button_pushes:
+        # append movements from button to button then A for press
+        paths = pad[(current_button, push_button)]
+        options.append(paths)
+        current_button = push_button
+    # print("  options", options)
+    results = generate_combinations(options)
+    return list(results)
+
+
+def shortest_robot_moves(pad, sequences):
+    return find_shortest(flatten([robot_moves(pad, s) for s in sequences]))
+
+
+def part1(file):
+    result = []
+    for button_seq in read_data_as_lines(21, file):
+        # print("  button_seqs", [button_seq])
+        d_seqs = shortest_robot_moves(NUMBER_PAD, [button_seq])
+        # print("  d_seqs", d_seqs)
+        r_seqs = shortest_robot_moves(DIRECTION_PAD, d_seqs)
+        # print("  r_seqs", r_seqs)
+        fourty_seqs = shortest_robot_moves(DIRECTION_PAD, r_seqs)
+        # print("  40_seqs", fourty_seqs)
+
+        button_seq_as_num = int(button_seq[:-1])
+        shortest_seq_length = len(fourty_seqs[0])
+        # print(button_seq_as_num, shortest_seq_length)
+        result.append(button_seq_as_num * shortest_seq_length)
+
+    # print("  result", result)
+    return sum(result)
+
+
+#      number pad           direction pad
+#     +---+---+---+            +---+---+
+#     | 7 | 8 | 9 |            | ^ | A |
+#     +---+---+---+        +---+---+---+
+#     | 4 | 5 | 6 |        | < | v | > |
+#     +---+---+---+        +---+---+---+
+#     | 1 | 2 | 3 |
+#     +---+---+---+
+#         | 0 | A |
+#         +---+---+
 
 if __name__ == "__main__":
-    print(NPAD_BUTTON_COORDINATES)
+    # print(generate_combinations([["<"], ["^"], ["^^>", "^>^", ">^^"], ["vvv"]]))
+    run(
+        part1,
+        [
+            ("pre_example", 1972),
+            # ("pre_example2", 2660),
+            ("example", 126384),
+            ("puzzle_input", 278748),
+        ],
+    )
