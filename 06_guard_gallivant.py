@@ -1,6 +1,4 @@
-from utils.runners import run
-from utils.files import read_data_as_lines
-from utils.matrix_2d.coordinates import TURN_CLOCKWISE, UP, add
+from aoc import read_data_as_lines, run, TURN_CLOCKWISE, UP, coord_add
 
 
 def parse(file):
@@ -32,7 +30,7 @@ def is_out_of_bounds(limits, coord):
 def find_path_unique_coords(direction, coord, obstructions, limits):
     unique_coords = set()
     while not is_out_of_bounds(limits, coord):
-        next_coord = add(coord, direction)
+        next_coord = coord_add(coord, direction)
         if next_coord in obstructions:
             # Obstructed must turn
             direction = TURN_CLOCKWISE[direction]
@@ -59,7 +57,7 @@ def find_possible_loop_in_path(direction, coord, obstructions, limits):
             return True
 
         visited_vectors.add(vector)
-        next_coord = add(coord, direction)
+        next_coord = coord_add(coord, direction)
         if next_coord in obstructions:
             # print("Turn Vec: ", visited_vectors)
             # Obstructed must turn
@@ -91,4 +89,4 @@ def part2(file):
 
 if __name__ == "__main__":
     run(part1, [("example", 41), ("puzzle_input", 5095)])
-    run(part2, [("example", 6), ("puzzle_input", 1933)])
+    run(part2, [("example", 6), ("puzzle_input", 1933, False)])

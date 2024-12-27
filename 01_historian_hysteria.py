@@ -1,11 +1,10 @@
-from utils.runners import run
-from utils.files import read_data_as_lines, split_and_map
+from aoc import read_data_as_lines, run
 from collections import Counter
 
 
 def parse_data(file):
     lines = read_data_as_lines(1, file)
-    numbers_by_line = split_and_map(int, "   ", lines)
+    numbers_by_line = [list(map(int, line.split("   "))) for line in lines]
     # put first numbers in a list, and second number of line in a list
     return list(zip(*numbers_by_line))
 

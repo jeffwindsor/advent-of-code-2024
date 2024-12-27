@@ -1,7 +1,6 @@
 import numpy as np
 from math import isclose
-from utils.files import read_data
-from utils.runners import run
+from aoc import read_data, run
 from re import findall
 
 

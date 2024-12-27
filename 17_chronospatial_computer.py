@@ -1,4 +1,4 @@
-from utils.runners import run
+from aoc import run
 
 
 def run_program(program, reg_a, reg_b, reg_c):

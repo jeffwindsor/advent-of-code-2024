@@ -1,6 +1,5 @@
 from itertools import repeat, islice
-from utils.runners import run
-from utils.files import read_data
+from aoc import read_data, run
 
 
 def parse(file):

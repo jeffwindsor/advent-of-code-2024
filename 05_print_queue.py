@@ -1,5 +1,4 @@
-from utils.runners import run
-from utils.files import read_data
+from aoc import read_data, run
 from collections import defaultdict
 from functools import cmp_to_key
 

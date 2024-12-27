@@ -6,13 +6,12 @@
 # Run the script: ./run_all_py_scripts.sh
 clear
 for script in *.py; do
-    if [[ -f "$script" ]]; then
-        #echo "Running: $script"
-        python3 "$script"
-        #echo "Finished: $script"
-        #echo "-------------------"
-    else
-        echo "No Python scripts found in the directory."
-    fi
+	if [[ -f "$script" ]]; then
+		#echo "Running: $script"
+		python3 "$script"
+		#echo "Finished: $script"
+		#echo "-------------------"
+	else
+		echo "No Python scripts found in the directory."
+	fi
 done
-,

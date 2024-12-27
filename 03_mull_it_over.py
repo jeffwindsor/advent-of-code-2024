@@ -1,5 +1,4 @@
-from utils.runners import run
-import utils.files as F
+from aoc import read_data, run
 from re import findall
 
 DAY = 3
@@ -27,7 +26,7 @@ def apply_do_and_dont(matches):
 def part1(file):
     pattern = r"mul\((\d{1,3}),(\d{1,3})\)"
     # find all returns tuple of (x,y)
-    multiplies = findall(pattern, F.read_data(DAY, file))
+    multiplies = findall(pattern, read_data(DAY, file))
     return score(multiplies)
 
 
@@ -35,7 +34,7 @@ def part2(file):
     pattern = r"(mul\(\d{1,3},\d{1,3}\))|(do\(\))|(don't\(\))"
     # flatten since findall returns a tuple per match ('mul(x,y)','do()', "don't()")
     instructions = [
-        m[0] or m[1] or m[2] for m in findall(pattern, F.read_data(DAY, file))
+        m[0] or m[1] or m[2] for m in findall(pattern, read_data(DAY, file))
     ]
     multiplies = apply_do_and_dont(instructions)
     return score(multiplies)
