@@ -1,11 +1,11 @@
-from utils.files import read_data_as_lines, split_and_map
-from utils.runners import run
+from aoc import read_data_as_lines, run
 from itertools import pairwise
 
 
 def parse(filepath):
     lines = read_data_as_lines(2, filepath)
-    return split_and_map(int, " ", lines)
+    numbers_by_line = [list(map(int, line.split(" "))) for line in lines]
+    return numbers_by_line
 
 
 def is_safe(report):

@@ -1,22 +1,17 @@
 from heapq import heappush, heappop
-from utils.files import read_data_as_lines
-from utils.runners import run
-from utils.matrix_2d import find_first, higher_bounds, get_value
-from utils.matrix_2d.coordinates import (
+from aoc import (
+    read_data_as_lines,
+    run,
+    find_first,
+    matrix_higher_bounds,
+    get_value,
     DIRECTIONS_CARDINAL,
-    UP,
     RIGHT,
-    DOWN,
-    LEFT,
-    add,
-    is_within_bounds_inclusive,
+    coord_add,
+    coord_is_within_bounds_inclusive,
 )
 
-NORTH = DIRECTIONS_CARDINAL.index(UP)
 EAST = DIRECTIONS_CARDINAL.index(RIGHT)
-SOUTH = DIRECTIONS_CARDINAL.index(DOWN)
-WEST = DIRECTIONS_CARDINAL.index(LEFT)
-INITIAL_SCORE = 0
 
 
 def parse(file):
@@ -27,12 +22,12 @@ def parse(file):
 
 
 def find_lowest_score(matrix, start, end):
-    hb = higher_bounds(matrix)
+    hb = matrix_higher_bounds(matrix)
     direction_cost = 1000
     forward_cost = 1
 
     pq = []  # Priority queue: (score, y, x, direction)
-    heappush(pq, (INITIAL_SCORE, start, EAST))
+    heappush(pq, (0, start, EAST))
     visited = set()
 
     while pq:
@@ -49,9 +44,9 @@ def find_lowest_score(matrix, start, end):
 
         # Try moving forward
         dc = DIRECTIONS_CARDINAL[direction]
-        nc = add(cc, dc)
+        nc = coord_add(cc, dc)
 
-        if is_within_bounds_inclusive(nc, hb) and get_value(matrix, nc) != "#":
+        if coord_is_within_bounds_inclusive(nc, hb) and get_value(matrix, nc) != "#":
             heappush(pq, (score + forward_cost, nc, direction))
 
         # Try rotating left and right

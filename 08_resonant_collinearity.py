@@ -1,39 +1,58 @@
 from itertools import combinations
-from utils.files import read_data_as_lines
-from utils.runners import run
-from utils.matrix_2d import higher_bounds
-from utils.matrix_2d.coordinates import (
+from aoc import (
+    read_data_as_lines,
+    run,
+    coord_add,
+    coord_sub,
+    coord_is_within_bounds_inclusive,
+    matrix_higher_bounds,
     filter_within_bounds,
-    is_within_bounds_inclusive,
-    add,
-    sub,
 )
-from utils.parsers.matrix_2D import parse_into_char_coords
+
+# from utils.matrix_2d import higher_bounds
+# from utils.matrix_2d.coordinates import (
+#     filter_within_bounds,
+#     is_within_bounds_inclusive,
+#     add,
+#     sub,
+# )
+
+
+def parse_into_char_coords(lines, empty_char):
+    result = {}
+    for row, line in enumerate(lines):
+        for col, char in enumerate(line.strip()):
+            if char == empty_char:
+                continue
+            if char not in result:
+                result[char] = []
+            result[char].append((row, col))
+    return result
 
 
 def parse(file):
     lines = read_data_as_lines(8, file)
-    return higher_bounds(lines), parse_into_char_coords(lines, ".")
+    return matrix_higher_bounds(lines), parse_into_char_coords(lines, ".")
 
 
 def extend_in_direction(coord, diff, combine_func, bounds):
     valid_coordinates = []
-    while is_within_bounds_inclusive(coord, bounds):
+    while coord_is_within_bounds_inclusive(coord, bounds):
         valid_coordinates.append(coord)
         coord = combine_func(coord, diff)
     return valid_coordinates
 
 
 def extended_pair(a, b, bounds):
-    diff = sub(a, b)
-    potential_coords = [add(a, diff), sub(b, diff)]
+    diff = coord_sub(a, b)
+    potential_coords = [coord_add(a, diff), coord_sub(b, diff)]
     return filter_within_bounds(potential_coords, bounds)
 
 
 def extended_line(a, b, bounds):
-    diff = sub(a, b)
-    return extend_in_direction(a, diff, add, bounds) + extend_in_direction(
-        b, diff, sub, bounds
+    diff = coord_sub(a, b)
+    return extend_in_direction(a, diff, coord_add, bounds) + extend_in_direction(
+        b, diff, coord_sub, bounds
     )
 
 

@@ -1,7 +1,13 @@
-from utils.files import read_data_as_lines
-from utils.matrix_2d import find_first, size, is_within_bounds, get_value
-from utils.matrix_2d.coordinates import DIRECTIONS_CARDINAL, UP, DOWN, RIGHT, LEFT, add
-from utils.runners import run
+from aoc import (
+    read_data_as_lines,
+    run,
+    DIRECTIONS_CARDINAL,
+    coord_is_within_matrix,
+    coord_add,
+    get_value,
+    find_first,
+    matrix_size,
+)
 
 WALL = "#"
 SPACE = "."
@@ -32,9 +38,9 @@ def dfs(maze, start, end):
             return path  # Return the path when the end is reached
 
         for direction in DIRECTIONS_CARDINAL:
-            next_position = add(current, direction)
+            next_position = coord_add(current, direction)
             if (
-                is_within_bounds(maze, next_position)
+                coord_is_within_matrix(maze, next_position)
                 and next_position not in visited
                 and get_value(maze, next_position) in (SPACE, END)
             ):
@@ -44,7 +50,7 @@ def dfs(maze, start, end):
 
 
 def analyze_maze(maze, start, end):
-    rows, cols = size(maze)
+    rows, cols = matrix_size(maze)
 
     path = dfs(maze, start, end)
     if not path:
@@ -54,15 +60,15 @@ def analyze_maze(maze, start, end):
     for current_index, current_coord in enumerate(path):
         # look in cardinal directions for walls
         for direction in DIRECTIONS_CARDINAL:
-            check_for_wall = add(current_coord, direction)
+            check_for_wall = coord_add(current_coord, direction)
             if (
-                is_within_bounds(maze, check_for_wall)
+                coord_is_within_matrix(maze, check_for_wall)
                 and get_value(maze, check_for_wall) == WALL
             ):
                 # then one more in same direction for non wall
-                check_for_space = add(check_for_wall, direction)
+                check_for_space = coord_add(check_for_wall, direction)
                 if (
-                    is_within_bounds(maze, check_for_space)
+                    coord_is_within_matrix(maze, check_for_space)
                     and get_value(maze, check_for_space) != WALL
                 ):
                     space_index = path_index_by_coord[check_for_space]

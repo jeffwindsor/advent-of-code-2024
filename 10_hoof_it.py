@@ -1,7 +1,88 @@
-from utils.matrix_2d import bfs, get_value, find_all, find_paths_rec
-from utils.matrix_2d.coordinates import DIRECTIONS_CARDINAL
-from utils.files import read_data_as_lines
-from utils.runners import run
+from aoc import (
+    read_data_as_lines,
+    run,
+    DIRECTIONS_CARDINAL,
+    get_value,
+    find_all,
+    matrix_higher_bounds,
+    coord_is_within_bounds_inclusive,
+    coord_add,
+    coord_is_within_matrix,
+)
+from collections import deque
+
+
+def find_paths_rec(
+    matrix, start, current_path, is_valid_step, is_end, directions, memo
+):
+    """
+    Generalized algorithm to find paths in a grid.
+
+    Args:
+        grid: 2D list representing the grid.
+        row, col: Current position in the grid.
+        current_path: List of (row, col) tuples representing the current path.
+        memo: Dictionary to store previously computed results.
+        is_valid_step: Function to validate a step (grid, row, col, next_row, next_col).
+        is_end: Function to check if a position is the end condition (grid, row, col).
+
+    Returns:
+        A set of unique paths (as tuples of (row, col)).
+    """
+    key = (start, tuple(current_path))
+    if key in memo:
+        return memo[key]
+
+    if is_end(matrix, start):
+        return {tuple(current_path)}
+
+    paths = set()
+    for direction in directions:
+        next = coord_add(start, direction)
+        if coord_is_within_matrix(matrix, next) and is_valid_step(matrix, start, next):
+            paths |= find_paths_rec(
+                matrix,
+                next,
+                current_path + [next],
+                is_valid_step,
+                is_end,
+                directions,
+                memo,
+            )
+
+    memo[key] = paths
+    return paths
+
+
+def bfs(matrix, start, directions, can_visit):
+    """
+    Perform BFS on a 2D matrix.
+
+    :param matrix: 2D list representing the matrix
+    :param start: Tuple (x, y) representing the starting position
+    :param directions: list of coordinate offsets for each possible direction
+    :return: List of visited positions in BFS order
+    """
+    hb = matrix_higher_bounds(matrix)
+    queue = deque([start])
+    visited = set([start])
+    order = []
+    while queue:
+        x, y = queue.popleft()
+        order.append((x, y))
+
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+            # Check bounds and if the cell has not been visited
+            if (
+                coord_is_within_bounds_inclusive((nx, ny), hb)
+                and (nx, ny) not in visited
+                and can_visit((x, y), (nx, ny))
+            ):
+                visited.add((nx, ny))
+                queue.append((nx, ny))
+
+    return order
 
 
 def parse(file):

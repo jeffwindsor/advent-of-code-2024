@@ -1,13 +1,11 @@
-from utils.runners import run
-from utils.files import read_data_as_lines
-from utils.matrix_2d import higher_bounds
-from utils.matrix_2d.coordinates import (
-    is_within_bounds_inclusive,
+from aoc import (
+    read_data_as_lines,
+    run,
     DIRECTIONS_ALL,
     DIRECTIONS_INTERCARDINAL,
+    coord_is_within_bounds_inclusive,
+    matrix_higher_bounds,
 )
-
-VALID_X_MAS = {"MSMS", "MMSS", "SSMM", "SMSM"}
 
 
 def parse(file):
@@ -15,11 +13,11 @@ def parse(file):
 
 
 def search_word_in_direction(word, matrix, r, c, dr, dc):
-    hb = higher_bounds(matrix)
+    hb = matrix_higher_bounds(matrix)
     for i, char in enumerate(word):
         new_row, new_col = r + i * dr, c + i * dc
         if (
-            not is_within_bounds_inclusive((new_row, new_col), hb)
+            not coord_is_within_bounds_inclusive((new_row, new_col), hb)
             or matrix[new_row][new_col] != char
         ):
             return False
@@ -39,7 +37,7 @@ def is_valid_x_mas(matrix, r, c):
     if matrix[r][c] != "A":
         return False
     corners = map(lambda cc: matrix[r + cc[0]][c + cc[1]], DIRECTIONS_INTERCARDINAL)
-    return "".join(corners) in VALID_X_MAS
+    return "".join(corners) in {"MSMS", "MMSS", "SSMM", "SMSM"}
 
 
 def search_x_mas(matrix):

@@ -1,5 +1,4 @@
-from utils.files import read_data
-from utils.runners import run
+from aoc import read_data, run
 
 
 def parse_file(filepath):

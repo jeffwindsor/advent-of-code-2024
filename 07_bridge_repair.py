@@ -1,6 +1,5 @@
 from itertools import product
-from utils.runners import run
-from utils.files import read_data_as_lines
+from aoc import read_data_as_lines, run
 
 PLUS = "+"
 MULTIPLY = "*"
@@ -61,4 +60,4 @@ def part2(file):
 
 if __name__ == "__main__":
     run(part1, [("example", 3749), ("puzzle_input", 1153997401072)])
-    run(part2, [("example", 11387), ("puzzle_input", 97902809384118)])
+    run(part2, [("example", 11387), ("puzzle_input", 97902809384118, False)])

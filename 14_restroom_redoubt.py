@@ -1,6 +1,5 @@
 from re import findall
-from utils.files import read_data_as_lines
-from utils.runners import run
+from aoc import read_data_as_lines, run
 
 
 def parse_line(line):

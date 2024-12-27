@@ -1,14 +1,10 @@
+from aoc import read_data_as_lines, run
 from collections import deque
 
 
-def parse_input(file_path: str) -> list[tuple[int, int]]:
-    with open(file_path, "r") as file:
-        # Read the file content and split it into lines
-        content = file.read()
-        # Split the content by newlines, then split by commas and convert to tuples
-        coordinates = [
-            tuple(map(int, line.split(","))) for line in content.strip().split("\n")
-        ]
+def parse_input(file):
+    lines = read_data_as_lines(18, file)
+    coordinates = [tuple(map(int, line.split(","))) for line in lines]
     return coordinates
 
 
@@ -63,14 +59,11 @@ def find_shortest_path(grid):
     return -1
 
 
-def part1(file_path, grid_size, sim_bytes):
-    # Simulate the grid
+def part1(args):
+    file_path, grid_size, sim_bytes = args
     grid = simulate_memory_space(grid_size, parse_input(file_path), sim_bytes)
-
-    # Find the shortest path
     return find_shortest_path(grid)
 
 
 if __name__ == "__main__":
-    print(f"p1.e1 (22): {part1('example',7,12)}")
-    print(f"p1.pi (): {part1('puzzle_input',71,1024)}")
+    run(part1, [(("example", 7, 12), 22), (("puzzle_input", 71, 1024), 226)])
