@@ -1,17 +1,3 @@
 {
-    // Displayed in the UI
-    "name": "Python 3 Dev Container"
-    
-    // Use a pre-built python image (its fine) 
-    "image": "mcr.microsoft.com/devcontainers/python",
-
-    // Use 'postCreateCommand' to run commands after the container is created.
-    "postCreateCommand": {
-        "pip3 install --user -r requirements.txt",
-    }
-
-    // TODO INSTALL
-        // helix, lazygit 
-        // black, shellcheck, shfmt
-        // bash-language-server, python-lsp-server
+    "image": "mcr.microsoft.com/devcontainers/python"
 }
