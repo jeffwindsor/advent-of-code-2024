@@ -1,8 +1,0 @@
-{
-    "image": "mcr.microsoft.com/devcontainers/base:alpine",
-    "features": {
-        "ghcr.io/devcontainers/features/nix:1": {
-            "packages": "starship,helix,git,lazygit, python312,python312Packages.python-lsp-server,python312Packages.black, python-lsp-server,black,bash-language-server,shellcheck,shfmt"
-        }
-    },
-}
