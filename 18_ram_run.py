@@ -1,11 +1,9 @@
-from aoc import read_data_as_lines, run, TestCase, Coord
+from aoc import parse_coord_pairs, run, TestCase, Coord
 from collections import deque
 
 
 def parse_input(data_file):
-    lines = read_data_as_lines(data_file)
-    coordinates = [tuple(map(int, line.split(","))) for line in lines]
-    return coordinates
+    return parse_coord_pairs(data_file)
 
 
 def simulate_memory_space(grid_size, byte_positions, total_bytes):

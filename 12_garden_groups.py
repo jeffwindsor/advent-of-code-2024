@@ -1,4 +1,4 @@
-from aoc import read_data_as_lines, run, TestCase, Coord
+from aoc import read_data_as_char_grid, run, TestCase, Coord, create_visited_grid, matrix_size
 from collections import deque
 from dataclasses import dataclass
 
@@ -11,7 +11,7 @@ class Region:
 
 
 def parse(data_file: str) -> list[list[str]]:
-    return [list(line) for line in read_data_as_lines(data_file)]
+    return read_data_as_char_grid(data_file)
 
 
 def is_valid_cell(x: int, y: int, rows: int, cols: int) -> bool:
@@ -143,7 +143,7 @@ def calculate_area_and_perimeter(grid: list[list[str]]) -> list[Region]:
     Perimeter counts edges that border different plants or the grid boundary.
     """
     rows, cols = len(grid), len(grid[0])
-    visited = [[False] * cols for _ in range(rows)]
+    visited = create_visited_grid(matrix_size(grid))
     results = []
 
     for r in range(rows):
@@ -211,7 +211,7 @@ def count_perimeter_sides(
 def calculate_area_and_sides(grid: list[list[str]]) -> list[tuple[str, int, int]]:
     """Calculate area and sides for each region using flood fill with direction tracking."""
     rows, cols = len(grid), len(grid[0])
-    visited = [[False] * cols for _ in range(rows)]
+    visited = create_visited_grid(matrix_size(grid))
 
     def flood_fill(r: int, c: int, plant: str) -> tuple[int, int]:
         stack = [(r, c)]
@@ -255,7 +255,7 @@ def calculate_area_and_sides(grid: list[list[str]]) -> list[tuple[str, int, int]
 def calculate_total_price(grid: list[list[str]]) -> int:
     """Calculate total price for all regions (area * perimeter)."""
     rows, cols = len(grid), len(grid[0])
-    visited = [[False] * cols for _ in range(rows)]
+    visited = create_visited_grid(matrix_size(grid))
     total_price = 0
 
     for i in range(rows):

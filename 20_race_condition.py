@@ -1,5 +1,5 @@
 from aoc import (
-    read_data_as_lines,
+    read_data_as_char_grid,
     run,
     TestCase,
     Coord,
@@ -16,7 +16,7 @@ END = "E"
 
 
 def parse(data_file):
-    return [list(row) for row in read_data_as_lines(data_file)]
+    return read_data_as_char_grid(data_file)
 
 
 def dfs(maze, start, end):
@@ -107,7 +107,7 @@ def analyze_maze_with_longer_cheats(maze, start, end, max_cheat_duration):
                     end_index = path_index_by_coord[cheat_end]
 
                     # Calculate actual cheat duration (Manhattan distance)
-                    cheat_duration = abs(drow) + abs(dcol)
+                    cheat_duration = current_coord.manhattan_distance(cheat_end)
 
                     # Calculate time saved: path distance - cheat duration
                     path_distance = end_index - current_index
