@@ -426,6 +426,59 @@ def dijkstra(
     return distances
 
 
+def find_max_clique(graph: dict[Any, set[Any]]) -> set[Any]:
+    """
+    Find the largest clique (fully-connected subgraph) using Bron-Kerbosch algorithm.
+
+    A clique is a subset of nodes where every node is connected to every other node.
+    This uses the Bron-Kerbosch algorithm to efficiently enumerate all maximal cliques.
+
+    Args:
+        graph: Adjacency graph (dict mapping nodes to sets of neighbors)
+
+    Returns:
+        Set of nodes forming the largest clique
+
+    Example:
+        >>> graph = {'a': {'b', 'c'}, 'b': {'a', 'c'}, 'c': {'a', 'b'}}
+        >>> find_max_clique(graph)
+        {'a', 'b', 'c'}  # All three nodes form a complete triangle
+    """
+    def bron_kerbosch(R: set, P: set, X: set, cliques: list):
+        """
+        Bron-Kerbosch algorithm to find all maximal cliques.
+
+        Args:
+            R: Current clique being built
+            P: Candidate vertices that could extend R
+            X: Vertices already processed
+            cliques: List to collect all maximal cliques
+        """
+        if not P and not X:
+            # Found a maximal clique
+            cliques.append(R.copy())
+            return
+
+        # Iterate over a copy of P since we modify it
+        for v in list(P):
+            neighbors = graph.get(v, set())
+            bron_kerbosch(
+                R | {v},           # Add v to current clique
+                P & neighbors,     # Candidates must be neighbors of v
+                X & neighbors,     # Processed must be neighbors of v
+                cliques
+            )
+            P.remove(v)           # Remove v from candidates
+            X.add(v)              # Add v to processed
+
+    cliques = []
+    vertices = set(graph.keys())
+    bron_kerbosch(set(), vertices, set(), cliques)
+
+    # Return the largest clique found
+    return max(cliques, key=len) if cliques else set()
+
+
 # ========== Number/Math Utilities ==========
 
 
@@ -688,6 +741,42 @@ def parse_coord_pairs(data_file: str, separator: str = ",") -> list[tuple[int, i
     ]
 
 
+def parse_graph_edges(
+    data_file: str,
+    separator: str = "-",
+    directed: bool = False
+) -> dict[str, set[str]]:
+    """
+    Parse edge list into adjacency graph representation.
+
+    Args:
+        data_file: Path to input file with edges (e.g., "a-b")
+        separator: Character separating nodes (default: '-')
+        directed: If False, adds edges in both directions (default: False)
+
+    Returns:
+        Dictionary mapping each node to its set of neighbors
+
+    Example:
+        Input file:
+            a-b
+            b-c
+        Returns: {'a': {'b'}, 'b': {'a', 'c'}, 'c': {'b'}}
+    """
+    from collections import defaultdict
+
+    graph = defaultdict(set)
+    lines = read_data_as_lines(data_file)
+
+    for line in lines:
+        node1, node2 = line.split(separator)
+        graph[node1].add(node2)
+        if not directed:
+            graph[node2].add(node1)
+
+    return graph
+
+
 # ========== Exports ==========
 
 __all__ = [
@@ -704,6 +793,7 @@ __all__ = [
     "dfs",
     "dfs_grid_path",
     "dijkstra",
+    "find_max_clique",
     # Number/Math utilities
     "count_continuous_segments",
     "count_digits",
@@ -726,6 +816,7 @@ __all__ = [
     "read_data_as_char_grid",
     "read_data_as_int_grid",
     "parse_coord_pairs",
+    "parse_graph_edges",
 ]
 
 
