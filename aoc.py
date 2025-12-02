@@ -1,7 +1,9 @@
 import os
 import inspect
 from dataclasses import dataclass
-from typing import Callable, Any
+from typing import Callable, Any, Iterator
+from collections import deque
+from heapq import heappush, heappop
 
 
 # ========== Type Aliases ==========
@@ -37,6 +39,30 @@ class Coord:
             and min_bounds.col <= self.col <= max_bounds.col
         )
 
+    def manhattan_distance(self, other: "Coord") -> int:
+        """Calculate Manhattan distance to another coordinate."""
+        return abs(self.row - other.row) + abs(self.col - other.col)
+
+    def neighbors(
+        self, max_bounds: "Coord", directions: list["Coord"] | None = None
+    ) -> list["Coord"]:
+        """
+        Get valid neighbors within bounds.
+
+        Args:
+            max_bounds: Maximum coordinate bounds
+            directions: List of direction vectors (default: DIRECTIONS_CARDINAL)
+
+        Returns:
+            List of valid neighbor coordinates
+        """
+        directions = directions or Coord.DIRECTIONS_CARDINAL
+        return [
+            neighbor
+            for d in directions
+            if (neighbor := self + d).in_bounds(max_bounds)
+        ]
+
 
 # Direction constants as class attributes
 Coord.ZERO = Coord(0, 0)
@@ -57,6 +83,12 @@ Coord.TURN_CLOCKWISE = {
     Coord.RIGHT: Coord.DOWN,
     Coord.DOWN: Coord.LEFT,
     Coord.LEFT: Coord.UP,
+}
+Coord.TURN_COUNTER_CLOCKWISE = {
+    Coord.UP: Coord.LEFT,
+    Coord.LEFT: Coord.DOWN,
+    Coord.DOWN: Coord.RIGHT,
+    Coord.RIGHT: Coord.UP,
 }
 
 
@@ -131,6 +163,122 @@ def filter_coords_in_bounds(
     return [c for c in coords if c.in_bounds(max_bounds, min_bounds)]
 
 
+# ========== Graph Algorithms ==========
+
+
+def bfs(
+    start: Coord,
+    neighbors_func: Callable[[Coord], list[Coord]],
+    goal_func: Callable[[Coord], bool] | None = None,
+) -> dict[Coord, int] | list[Coord]:
+    """
+    Generic breadth-first search algorithm.
+
+    Args:
+        start: Starting coordinate
+        neighbors_func: Function that returns valid neighbors for a coordinate
+        goal_func: Optional function to check if goal is reached
+
+    Returns:
+        If goal_func is None: dict mapping coordinates to distances from start
+        If goal_func provided: list of coordinates forming path to goal, or empty list if no path
+    """
+    queue = deque([(start, [start])])
+    visited = {start}
+    distances = {start: 0}
+
+    while queue:
+        current, path = queue.popleft()
+
+        if goal_func and goal_func(current):
+            return path
+
+        for neighbor in neighbors_func(current):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                distances[neighbor] = distances[current] + 1
+                queue.append((neighbor, path + [neighbor]))
+
+    return distances if not goal_func else []
+
+
+def dfs(
+    start: Coord,
+    neighbors_func: Callable[[Coord], list[Coord]],
+    goal_func: Callable[[Coord], bool],
+) -> list[Coord] | None:
+    """
+    Generic depth-first search algorithm.
+
+    Args:
+        start: Starting coordinate
+        neighbors_func: Function that returns valid neighbors for a coordinate
+        goal_func: Function to check if goal is reached
+
+    Returns:
+        List of coordinates forming path to goal, or None if no path found
+    """
+    stack = [(start, [start])]
+    visited = set()
+
+    while stack:
+        current, path = stack.pop()
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        if goal_func(current):
+            return path
+
+        for neighbor in neighbors_func(current):
+            if neighbor not in visited:
+                stack.append((neighbor, path + [neighbor]))
+
+    return None
+
+
+def dijkstra(
+    start: Coord,
+    neighbors_func: Callable[[Coord], list[tuple[Coord, int]]],
+    goal: Coord | None = None,
+) -> dict[Coord, int]:
+    """
+    Dijkstra's shortest path algorithm.
+
+    Args:
+        start: Starting coordinate
+        neighbors_func: Function returning list of (neighbor, cost) tuples
+        goal: Optional goal coordinate (returns early if found)
+
+    Returns:
+        Dictionary mapping coordinates to shortest distances from start
+    """
+    pq = [(0, start)]
+    distances = {start: 0}
+    visited = set()
+
+    while pq:
+        dist, current = heappop(pq)
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        if goal and current == goal:
+            return distances
+
+        for neighbor, cost in neighbors_func(current):
+            new_dist = dist + cost
+            if neighbor not in distances or new_dist < distances[neighbor]:
+                distances[neighbor] = new_dist
+                heappush(pq, (new_dist, neighbor))
+
+    return distances
+
+
 # ========== Matrix/Grid Functions ==========
 
 
@@ -174,6 +322,53 @@ def find_all(matrix: Grid, value: Any) -> list[Coord]:
     ]
 
 
+def matrix_coords(matrix: Grid) -> Iterator[tuple[Coord, Any]]:
+    """
+    Iterate over (coordinate, value) pairs in matrix.
+
+    Args:
+        matrix: 2D grid
+
+    Yields:
+        Tuples of (Coord, value) for each cell in the matrix
+    """
+    for r, row in enumerate(matrix):
+        for c, value in enumerate(row):
+            yield Coord(r, c), value
+
+
+def group_by_value(matrix: Grid, exclude: Any | None = None) -> dict[Any, list[Coord]]:
+    """
+    Group coordinates by their cell values.
+
+    Args:
+        matrix: 2D grid
+        exclude: Optional value to exclude from grouping
+
+    Returns:
+        Dictionary mapping values to lists of coordinates with that value
+    """
+    result = {}
+    for coord, value in matrix_coords(matrix):
+        if value != exclude:
+            result.setdefault(value, []).append(coord)
+    return result
+
+
+def create_visited_grid(size: Coord, initial_value: bool = False) -> list[list[bool]]:
+    """
+    Create a boolean grid for visited tracking.
+
+    Args:
+        size: Size of the grid as Coord(rows, cols)
+        initial_value: Initial value for all cells (default: False)
+
+    Returns:
+        2D list of booleans
+    """
+    return [[initial_value] * size.col for _ in range(size.row)]
+
+
 # ========== Data Reading ==========
 
 
@@ -196,6 +391,53 @@ def read_data_as_lines(data_file: str, strip_whitespace: bool = True) -> list[st
     )
 
 
+def read_data_as_char_grid(data_file: str) -> Grid:
+    """
+    Read puzzle input file and return as 2D character grid.
+
+    Returns:
+        list[list[str]] where each inner list is a row of characters
+    """
+    return [list(line) for line in read_data_as_lines(data_file)]
+
+
+def read_data_as_int_grid(data_file: str, empty_value: int = -1) -> Grid:
+    """
+    Read puzzle input file and return as 2D integer grid.
+
+    Args:
+        data_file: Path to input file
+        empty_value: Value to use for non-digit characters (default: -1)
+
+    Returns:
+        list[list[int]] where each inner list is a row of integers
+    """
+    return [
+        [int(char) if char.isdigit() else empty_value for char in line]
+        for line in read_data_as_lines(data_file)
+    ]
+
+
+def parse_coord_pairs(data_file: str, separator: str = ",") -> list[tuple[int, int]]:
+    """
+    Parse lines of coordinate pairs into list of tuples.
+
+    Args:
+        data_file: Path to input file
+        separator: Character separating coordinates (default: ',')
+
+    Returns:
+        List of (x, y) coordinate tuples
+
+    Example:
+        Input file with lines like "3,4" returns [(3, 4), ...]
+    """
+    return [
+        tuple(map(int, line.split(separator)))
+        for line in read_data_as_lines(data_file)
+    ]
+
+
 # ========== Exports ==========
 
 __all__ = [
@@ -207,6 +449,10 @@ __all__ = [
     "run",
     # Coordinate functions
     "filter_coords_in_bounds",
+    # Graph algorithms
+    "bfs",
+    "dfs",
+    "dijkstra",
     # Matrix functions
     "matrix_size",
     "matrix_max_bounds",
@@ -214,9 +460,15 @@ __all__ = [
     "matrix_get",
     "find_first",
     "find_all",
+    "matrix_coords",
+    "group_by_value",
+    "create_visited_grid",
     # Data reading
     "read_data",
     "read_data_as_lines",
+    "read_data_as_char_grid",
+    "read_data_as_int_grid",
+    "parse_coord_pairs",
 ]
 
 

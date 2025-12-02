@@ -1,4 +1,4 @@
-from aoc import read_data_as_lines, run, TestCase
+from aoc import read_data_as_lines, run, TestCase, Coord
 from collections import deque
 
 
@@ -26,9 +26,6 @@ def find_shortest_path(grid):
     start = (0, 0)
     end = (grid_size - 1, grid_size - 1)
 
-    # Directions for movement: right, left, down, up
-    directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-
     # BFS setup
     queue = deque([(start, 0)])  # (current_position, steps)
     visited = set()
@@ -42,8 +39,8 @@ def find_shortest_path(grid):
             return steps
 
         # Explore neighbors
-        for dx, dy in directions:
-            nx, ny = x + dx, y + dy
+        for direction in Coord.DIRECTIONS_CARDINAL:
+            nx, ny = x + direction.col, y + direction.row
 
             # Check bounds and valid movement
             if (
