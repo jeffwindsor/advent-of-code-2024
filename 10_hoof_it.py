@@ -2,12 +2,10 @@ from aoc import (
     read_data_as_lines,
     run,
     TestCase,
-    DIRECTIONS_CARDINAL,
+    Coord,
     matrix_get,
     find_all,
     matrix_max_bounds,
-    coord_in_bounds,
-    coord_add,
     matrix_contains_coord,
 )
 from collections import deque
@@ -39,7 +37,7 @@ def find_paths_rec(
 
     paths = set()
     for direction in directions:
-        next = coord_add(start, direction)
+        next = start + direction
         if matrix_contains_coord(matrix, next) and is_valid_step(matrix, start, next):
             paths |= find_paths_rec(
                 matrix,
@@ -60,7 +58,7 @@ def bfs(matrix, start, directions, can_visit):
     Perform BFS on a 2D matrix.
 
     :param matrix: 2D list representing the matrix
-    :param start: Tuple (x, y) representing the starting position
+    :param start: Coord representing the starting position
     :param directions: list of coordinate offsets for each possible direction
     :return: List of visited positions in BFS order
     """
@@ -69,19 +67,19 @@ def bfs(matrix, start, directions, can_visit):
     visited = set([start])
     order = []
     while queue:
-        x, y = queue.popleft()
-        order.append((x, y))
+        current = queue.popleft()
+        order.append(current)
 
-        for dx, dy in directions:
-            nx, ny = x + dx, y + dy
+        for direction in directions:
+            next_coord = current + direction
             # Check bounds and if the cell has not been visited
             if (
-                coord_in_bounds((nx, ny), hb)
-                and (nx, ny) not in visited
-                and can_visit((x, y), (nx, ny))
+                next_coord.in_bounds(hb)
+                and next_coord not in visited
+                and can_visit(current, next_coord)
             ):
-                visited.add((nx, ny))
-                queue.append((nx, ny))
+                visited.add(next_coord)
+                queue.append(next_coord)
 
     return order
 
@@ -98,7 +96,7 @@ def find_reachable_nines(topographic_map, start_coord):
     paths = bfs(
         topographic_map,
         start_coord,
-        DIRECTIONS_CARDINAL,
+        Coord.DIRECTIONS_CARDINAL,
         lambda p, n: matrix_get(topographic_map, p) + 1 == matrix_get(topographic_map, n),
     )
     nines = [coord for coord in set(paths) if matrix_get(topographic_map, coord) == 9]
@@ -125,7 +123,7 @@ def find_path_count(matrix, start):
             [start],
             is_valid_step,
             is_end_of_path,
-            DIRECTIONS_CARDINAL,
+            Coord.DIRECTIONS_CARDINAL,
             dict(),
         )
     )
