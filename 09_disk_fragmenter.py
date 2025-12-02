@@ -1,9 +1,9 @@
 from itertools import repeat, islice
-from aoc import read_data, run
+from aoc import read_data, run, TestCase
 
 
-def parse(file):
-    numbers = read_data(9, file)
+def parse(data_file):
+    numbers = read_data(data_file)
     file_blocks = list(map(int, islice(numbers, 0, None, 2)))  # first numbers
     free_blocks = list(map(int, islice(numbers, 1, None, 2)))  # second numbers
 
@@ -99,15 +99,15 @@ def part2(file):
 
 if __name__ == "__main__":
     test_cases_part1 = [
-        ("example_simple", 60),
-        ("example", 1928),
-        ("puzzle_input", 6332189866718),
+        TestCase("09_example_simple", 60),
+        TestCase("09_example", 1928),
+        TestCase("09_puzzle_input", 6332189866718),
     ]
 
     test_cases_part2 = [
-        ("example_simple", 132),  # Expected: 132
-        ("example", 2858),  # Expected: 2858
-        ("puzzle_input", 6353648390778),  # Expected: 6353648390778
+        TestCase("09_example_simple", 132),
+        TestCase("09_example", 2858),
+        TestCase("09_puzzle_input", 6353648390778),
     ]
 
     # Run the tests

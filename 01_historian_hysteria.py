@@ -1,9 +1,9 @@
-from aoc import read_data_as_lines, run
+from aoc import read_data_as_lines, run, TestCase
 from collections import Counter
 
 
-def parse_data(file):
-    lines = read_data_as_lines(1, file)
+def parse_data(data_file):
+    lines = read_data_as_lines(data_file)
     numbers_by_line = [list(map(int, line.split("   "))) for line in lines]
     # put first numbers in a list, and second number of line in a list
     return list(zip(*numbers_by_line))
@@ -21,5 +21,11 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    run(part1, [("example", 11), ("puzzle_input", 2066446)])
-    run(part2, [("example", 31), ("puzzle_input", 24931009)])
+    run(part1, [
+        TestCase("01_example", 11),
+        TestCase("01_puzzle_input", 2066446),
+    ])
+    run(part2, [
+        TestCase("01_example", 31),
+        TestCase("01_puzzle_input", 24931009),
+    ])

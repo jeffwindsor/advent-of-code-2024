@@ -1,4 +1,4 @@
-from aoc import read_data_as_lines, run
+from aoc import read_data_as_lines, run, TestCase
 from itertools import product
 from collections import deque
 
@@ -165,9 +165,9 @@ def shortest_robot_moves(pad, sequences):
     return find_shortest(flatten([robot_moves(pad, s) for s in sequences]))
 
 
-def part1(file):
+def part1(data_file):
     result = []
-    for button_seq in read_data_as_lines(21, file):
+    for button_seq in read_data_as_lines(data_file):
         # print("  button_seqs", [button_seq])
         d_seqs = shortest_robot_moves(NUMBER_PAD, [button_seq])
         # print("  d_seqs", d_seqs)
@@ -201,9 +201,9 @@ if __name__ == "__main__":
     run(
         part1,
         [
-            ("pre_example", 1972),
-            # ("pre_example2", 2660),
-            ("example", 126384),
-            ("puzzle_input", 278748),
+            TestCase("21_pre_example", 1972),
+            # TestCase("21_pre_example2", 2660),
+            TestCase("21_example", 126384),
+            TestCase("21_puzzle_input", 278748),
         ],
     )

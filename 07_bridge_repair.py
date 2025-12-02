@@ -1,5 +1,5 @@
 from itertools import product
-from aoc import read_data_as_lines, run
+from aoc import read_data_as_lines, run, TestCase
 
 PLUS = "+"
 MULTIPLY = "*"
@@ -12,8 +12,8 @@ def parse_line(line):
     return (int(answer), list(parts))
 
 
-def parse(file):
-    lines = read_data_as_lines(7, file)
+def parse(data_file):
+    lines = read_data_as_lines(data_file)
     return [parse_line(line) for line in lines]
 
 
@@ -59,5 +59,11 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    run(part1, [("example", 3749), ("puzzle_input", 1153997401072)])
-    run(part2, [("example", 11387), ("puzzle_input", 97902809384118, False)])
+    run(part1, [
+        TestCase("07_example", 3749),
+        TestCase("07_puzzle_input", 1153997401072),
+    ])
+    run(part2, [
+        TestCase("07_example", 11387),
+        TestCase("07_puzzle_input", 97902809384118),
+    ])

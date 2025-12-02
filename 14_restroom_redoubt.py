@@ -1,5 +1,5 @@
 from re import findall
-from aoc import read_data_as_lines, run
+from aoc import read_data_as_lines, run, TestCase
 
 
 def parse_line(line):
@@ -7,8 +7,8 @@ def parse_line(line):
     return ((px, py), (vx, vy))
 
 
-def parse_file(filepath):
-    return [parse_line(line) for line in read_data_as_lines(14, filepath)]
+def parse_file(data_file):
+    return [parse_line(line) for line in read_data_as_lines(data_file)]
 
 
 def simulate_robot_positions(robots, seconds, width, height):
@@ -85,6 +85,11 @@ def part2(args):
 if __name__ == "__main__":
     run(
         part1,
-        [(("example", 100, 11, 7), 12), (("puzzle_input", 100, 101, 103), 218619324)],
+        [
+            TestCase(("14_example", 100, 11, 7), 12),
+            TestCase(("14_puzzle_input", 100, 101, 103), 218619324),
+        ],
     )
-    run(part2, [(("puzzle_input", 7000, 101, 103), 6446)])
+    run(part2, [
+        TestCase(("14_puzzle_input", 7000, 101, 103), 6446),
+    ])

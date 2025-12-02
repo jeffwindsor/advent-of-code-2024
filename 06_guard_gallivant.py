@@ -1,11 +1,11 @@
-from aoc import read_data_as_lines, run, TURN_CLOCKWISE, UP, coord_add
+from aoc import read_data_as_lines, run, TestCase, TURN_CLOCKWISE, UP, coord_add
 
 
-def parse(file):
+def parse(data_file):
     GUARD_CHAR = "^"
     OBSTRUCTION_CHAR = "#"
     # read file contents
-    lines = read_data_as_lines(6, file)
+    lines = read_data_as_lines(data_file)
 
     # Initialize variables
     guard_coordinate = None
@@ -88,5 +88,11 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    run(part1, [("example", 41), ("puzzle_input", 5095)])
-    run(part2, [("example", 6), ("puzzle_input", 1933, False)])
+    run(part1, [
+        TestCase("06_example", 41),
+        TestCase("06_puzzle_input", 5095),
+    ])
+    run(part2, [
+        TestCase("06_example", 6),
+        TestCase("06_puzzle_input", 1933),
+    ])

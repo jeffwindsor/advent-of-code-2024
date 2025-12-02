@@ -1,11 +1,11 @@
-from aoc import read_data, run
+from aoc import read_data, run, TestCase
 from collections import defaultdict
 from functools import cmp_to_key
 
 
-def parse(file):
+def parse(data_file):
     # read file contents
-    file_contents = read_data(5, file)
+    file_contents = read_data(data_file)
 
     # Splitting the file contents into two sections
     sections = file_contents.strip().split("\n\n")
@@ -78,5 +78,11 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    run(part1, [("example", 143), ("puzzle_input", 7198)])
-    run(part2, [("example", 123), ("puzzle_input", 4230)])
+    run(part1, [
+        TestCase("05_example", 143),
+        TestCase("05_puzzle_input", 7198),
+    ])
+    run(part2, [
+        TestCase("05_example", 123),
+        TestCase("05_puzzle_input", 4230),
+    ])

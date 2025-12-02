@@ -1,13 +1,14 @@
 from aoc import (
     read_data_as_lines,
     run,
+    TestCase,
     DIRECTIONS_CARDINAL,
-    get_value,
+    matrix_get,
     find_all,
-    matrix_higher_bounds,
-    coord_is_within_bounds_inclusive,
+    matrix_max_bounds,
+    coord_in_bounds,
     coord_add,
-    coord_is_within_matrix,
+    matrix_contains_coord,
 )
 from collections import deque
 
@@ -39,7 +40,7 @@ def find_paths_rec(
     paths = set()
     for direction in directions:
         next = coord_add(start, direction)
-        if coord_is_within_matrix(matrix, next) and is_valid_step(matrix, start, next):
+        if matrix_contains_coord(matrix, next) and is_valid_step(matrix, start, next):
             paths |= find_paths_rec(
                 matrix,
                 next,
@@ -63,7 +64,7 @@ def bfs(matrix, start, directions, can_visit):
     :param directions: list of coordinate offsets for each possible direction
     :return: List of visited positions in BFS order
     """
-    hb = matrix_higher_bounds(matrix)
+    hb = matrix_max_bounds(matrix)
     queue = deque([start])
     visited = set([start])
     order = []
@@ -75,7 +76,7 @@ def bfs(matrix, start, directions, can_visit):
             nx, ny = x + dx, y + dy
             # Check bounds and if the cell has not been visited
             if (
-                coord_is_within_bounds_inclusive((nx, ny), hb)
+                coord_in_bounds((nx, ny), hb)
                 and (nx, ny) not in visited
                 and can_visit((x, y), (nx, ny))
             ):
@@ -85,11 +86,11 @@ def bfs(matrix, start, directions, can_visit):
     return order
 
 
-def parse(file):
+def parse(data_file):
     # problem wants to follow path of increasing values from 0, so EMPTY = -1
     return [
         list(map(lambda x: int(x) if x.isdigit() else -1, line))
-        for line in read_data_as_lines(10, file)
+        for line in read_data_as_lines(data_file)
     ]
 
 
@@ -98,9 +99,9 @@ def find_reachable_nines(topographic_map, start_coord):
         topographic_map,
         start_coord,
         DIRECTIONS_CARDINAL,
-        lambda p, n: get_value(topographic_map, p) + 1 == get_value(topographic_map, n),
+        lambda p, n: matrix_get(topographic_map, p) + 1 == matrix_get(topographic_map, n),
     )
-    nines = [coord for coord in set(paths) if get_value(topographic_map, coord) == 9]
+    nines = [coord for coord in set(paths) if matrix_get(topographic_map, coord) == 9]
     return len(nines)
 
 
@@ -109,11 +110,11 @@ def find_trailheads(topographic_map):
 
 
 def is_valid_step(grid, current_coord, next_coord):
-    return get_value(grid, next_coord) == get_value(grid, current_coord) + 1
+    return matrix_get(grid, next_coord) == matrix_get(grid, current_coord) + 1
 
 
 def is_end_of_path(grid, coord):
-    return get_value(grid, coord) == 9
+    return matrix_get(grid, coord) == 9
 
 
 def find_path_count(matrix, start):
@@ -150,22 +151,22 @@ if __name__ == "__main__":
     run(
         part1,
         [
-            ("example1", 1),
-            ("example2", 2),
-            ("example3", 4),
-            ("example4", 3),
-            ("example5", 36),
-            ("puzzle_input", 674),
+            TestCase("10_example1", 1),
+            TestCase("10_example2", 2),
+            TestCase("10_example3", 4),
+            TestCase("10_example4", 3),
+            TestCase("10_example5", 36),
+            TestCase("10_puzzle_input", 674),
         ],
     )
 
     run(
         part2,
         [
-            ("example_6", 3),
-            ("example_7", 13),
-            ("example_8", 227),
-            ("example_9", 81),
-            ("puzzle_input", 1372),
+            TestCase("10_example_6", 3),
+            TestCase("10_example_7", 13),
+            TestCase("10_example_8", 227),
+            TestCase("10_example_9", 81),
+            TestCase("10_puzzle_input", 1372),
         ],
     )
