@@ -1,6 +1,6 @@
 import numpy as np
 from math import isclose
-from aoc import read_data, run
+from aoc import read_data, run, TestCase
 from re import findall
 
 
@@ -12,8 +12,8 @@ def split_list(xs, n):
     return [as_integers(xs[i : i + n]) for i in range(0, len(xs), n)]
 
 
-def parse(file):
-    text = read_data(13, file)
+def parse(data_file):
+    text = read_data(data_file)
     return split_list(findall(r"[XY][+=](\d+)", text), 6)
 
 
@@ -50,5 +50,11 @@ def part2(file):
 
 if __name__ == "__main__":
     # print(f"example: {parse('example')}")
-    run(part1, [("example", 480), ("puzzle_input", 37128)])
-    run(part2, [("example", 875318608908), ("puzzle_input", 74914228471331)])
+    run(part1, [
+        TestCase("13_example", 480),
+        TestCase("13_puzzle_input", 37128),
+    ])
+    run(part2, [
+        TestCase("13_example", 875318608908),
+        TestCase("13_puzzle_input", 74914228471331),
+    ])

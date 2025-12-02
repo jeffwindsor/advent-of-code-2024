@@ -1,9 +1,9 @@
-from aoc import read_data_as_lines, run
+from aoc import read_data_as_lines, run, TestCase
 from collections import deque
 
 
-def parse_input(file):
-    lines = read_data_as_lines(18, file)
+def parse_input(data_file):
+    lines = read_data_as_lines(data_file)
     coordinates = [tuple(map(int, line.split(","))) for line in lines]
     return coordinates
 
@@ -66,4 +66,7 @@ def part1(args):
 
 
 if __name__ == "__main__":
-    run(part1, [(("example", 7, 12), 22), (("puzzle_input", 71, 1024), 226)])
+    run(part1, [
+        TestCase(("18_example", 7, 12), 22),
+        TestCase(("18_puzzle_input", 71, 1024), 226),
+    ])

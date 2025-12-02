@@ -2,20 +2,13 @@ from itertools import combinations
 from aoc import (
     read_data_as_lines,
     run,
+    TestCase,
     coord_add,
     coord_sub,
-    coord_is_within_bounds_inclusive,
-    matrix_higher_bounds,
-    filter_within_bounds,
+    coord_in_bounds,
+    matrix_max_bounds,
+    filter_coords_in_bounds,
 )
-
-# from utils.matrix_2d import higher_bounds
-# from utils.matrix_2d.coordinates import (
-#     filter_within_bounds,
-#     is_within_bounds_inclusive,
-#     add,
-#     sub,
-# )
 
 
 def parse_into_char_coords(lines, empty_char):
@@ -30,14 +23,14 @@ def parse_into_char_coords(lines, empty_char):
     return result
 
 
-def parse(file):
-    lines = read_data_as_lines(8, file)
-    return matrix_higher_bounds(lines), parse_into_char_coords(lines, ".")
+def parse(data_file):
+    lines = read_data_as_lines(data_file)
+    return matrix_max_bounds(lines), parse_into_char_coords(lines, ".")
 
 
 def extend_in_direction(coord, diff, combine_func, bounds):
     valid_coordinates = []
-    while coord_is_within_bounds_inclusive(coord, bounds):
+    while coord_in_bounds(coord, bounds):
         valid_coordinates.append(coord)
         coord = combine_func(coord, diff)
     return valid_coordinates
@@ -46,7 +39,7 @@ def extend_in_direction(coord, diff, combine_func, bounds):
 def extended_pair(a, b, bounds):
     diff = coord_sub(a, b)
     potential_coords = [coord_add(a, diff), coord_sub(b, diff)]
-    return filter_within_bounds(potential_coords, bounds)
+    return filter_coords_in_bounds(potential_coords, bounds)
 
 
 def extended_line(a, b, bounds):
@@ -74,5 +67,11 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    run(part1, [("example", 14), ("puzzle_input", 426)])
-    run(part2, [("example", 34), ("puzzle_input", 1359)])
+    run(part1, [
+        TestCase("08_example", 14),
+        TestCase("08_puzzle_input", 426),
+    ])
+    run(part2, [
+        TestCase("08_example", 34),
+        TestCase("08_puzzle_input", 1359),
+    ])

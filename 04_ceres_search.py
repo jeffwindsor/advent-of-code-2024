@@ -1,23 +1,24 @@
 from aoc import (
     read_data_as_lines,
     run,
+    TestCase,
     DIRECTIONS_ALL,
     DIRECTIONS_INTERCARDINAL,
-    coord_is_within_bounds_inclusive,
-    matrix_higher_bounds,
+    coord_in_bounds,
+    matrix_max_bounds,
 )
 
 
-def parse(file):
-    return read_data_as_lines(4, file)
+def parse(data_file):
+    return read_data_as_lines(data_file)
 
 
 def search_word_in_direction(word, matrix, r, c, dr, dc):
-    hb = matrix_higher_bounds(matrix)
+    hb = matrix_max_bounds(matrix)
     for i, char in enumerate(word):
         new_row, new_col = r + i * dr, c + i * dc
         if (
-            not coord_is_within_bounds_inclusive((new_row, new_col), hb)
+            not coord_in_bounds((new_row, new_col), hb)
             or matrix[new_row][new_col] != char
         ):
             return False
@@ -57,5 +58,13 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    run(part1, [("example1.1", 4), ("example1.2", 18), ("puzzle_input", 2662)])
-    run(part2, [("example2.1", 1), ("example2.2", 9), ("puzzle_input", 2034)])
+    run(part1, [
+        TestCase("04_example1.1", 4),
+        TestCase("04_example1.2", 18),
+        TestCase("04_puzzle_input", 2662),
+    ])
+    run(part2, [
+        TestCase("04_example2.1", 1),
+        TestCase("04_example2.2", 9),
+        TestCase("04_puzzle_input", 2034),
+    ])

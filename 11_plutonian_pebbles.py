@@ -1,9 +1,9 @@
 from collections import defaultdict
-from aoc import read_data, run
+from aoc import read_data, run, TestCase
 
 
-def parse(file):
-    numbers = read_data(11, file).split()
+def parse(data_file):
+    numbers = read_data(data_file).split()
     return [int(n) for n in numbers]
 
 
@@ -56,10 +56,10 @@ if __name__ == "__main__":
     run(
         answer,
         [
-            (("example1", 1), 7),
-            (("example2", 6), 22),
-            (("example2", 25), 55312),
-            (("puzzle_input", 25), 222461),
-            (("puzzle_input", 75), 264350935776416),
+            TestCase(("11_example1", 1), 7),
+            TestCase(("11_example2", 6), 22),
+            TestCase(("11_example2", 25), 55312),
+            TestCase(("11_puzzle_input", 25), 222461),
+            TestCase(("11_puzzle_input", 75), 264350935776416),
         ],
     )

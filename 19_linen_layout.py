@@ -1,8 +1,8 @@
-from aoc import read_data, run
+from aoc import read_data, run, TestCase
 
 
-def parse_input(file):
-    input = read_data(19, file)
+def parse_input(data_file):
+    input = read_data(data_file)
     ps, ds = input.strip().split("\n\n")
     patterns = [p.strip() for p in ps.split(",")]
     designs = [d.strip() for d in ds.splitlines()]
@@ -54,4 +54,7 @@ def parts(file):
 
 
 if __name__ == "__main__":
-    run(parts, [("example", (6, 16)), ("puzzle_input", (304, 705756472327497))])
+    run(parts, [
+        TestCase("19_example", (6, 16)),
+        TestCase("19_puzzle_input", (304, 705756472327497)),
+    ])

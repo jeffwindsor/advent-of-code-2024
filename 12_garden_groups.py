@@ -1,4 +1,4 @@
-from aoc import read_data_as_lines, run
+from aoc import read_data_as_lines, run, TestCase
 from collections import deque
 from dataclasses import dataclass
 
@@ -14,8 +14,8 @@ class Region:
     perimeter: int
 
 
-def parse(file: str) -> list[list[str]]:
-    return [list(line) for line in read_data_as_lines(12, file)]
+def parse(data_file: str) -> list[list[str]]:
+    return [list(line) for line in read_data_as_lines(data_file)]
 
 
 def is_valid_cell(x: int, y: int, rows: int, cols: int) -> bool:
@@ -284,10 +284,10 @@ if __name__ == "__main__":
     run(
         price_perimeter,
         [
-            ("example", 140),
-            ("example_xo", 772),
-            ("example_RIC", 1930),
-            ("puzzle_input", 1488414),
+            TestCase("12_example", 140),
+            TestCase("12_example_xo", 772),
+            TestCase("12_example_RIC", 1930),
+            TestCase("12_puzzle_input", 1488414),
         ],
     )
 
@@ -295,10 +295,10 @@ if __name__ == "__main__":
     run(
         price_by_area_and_sides,
         [
-            ("example", 80),
-            ("example_xo", 436),
-            ("example_EE", 236),
-            ("example_AA", 368),
-            ("puzzle_input", 911750),
+            TestCase("12_example", 80),
+            TestCase("12_example_xo", 436),
+            TestCase("12_example_EE", 236),
+            TestCase("12_example_AA", 368),
+            TestCase("12_puzzle_input", 911750),
         ],
     )

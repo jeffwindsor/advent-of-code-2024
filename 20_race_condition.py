@@ -1,10 +1,11 @@
 from aoc import (
     read_data_as_lines,
     run,
+    TestCase,
     DIRECTIONS_CARDINAL,
-    coord_is_within_matrix,
+    matrix_contains_coord,
     coord_add,
-    get_value,
+    matrix_get,
     find_first,
     matrix_size,
 )
@@ -15,8 +16,8 @@ START = "S"
 END = "E"
 
 
-def parse(file):
-    return [list(row) for row in read_data_as_lines(20, file)]
+def parse(data_file):
+    return [list(row) for row in read_data_as_lines(data_file)]
 
 
 def dfs(maze, start, end):
@@ -40,9 +41,9 @@ def dfs(maze, start, end):
         for direction in DIRECTIONS_CARDINAL:
             next_position = coord_add(current, direction)
             if (
-                coord_is_within_matrix(maze, next_position)
+                matrix_contains_coord(maze, next_position)
                 and next_position not in visited
-                and get_value(maze, next_position) in (SPACE, END)
+                and matrix_get(maze, next_position) in (SPACE, END)
             ):
                 stack.append((next_position, path))
 
@@ -62,14 +63,14 @@ def analyze_maze(maze, start, end):
         for direction in DIRECTIONS_CARDINAL:
             check_for_wall = coord_add(current_coord, direction)
             if (
-                coord_is_within_matrix(maze, check_for_wall)
-                and get_value(maze, check_for_wall) == WALL
+                matrix_contains_coord(maze, check_for_wall)
+                and matrix_get(maze, check_for_wall) == WALL
             ):
                 # then one more in same direction for non wall
                 check_for_space = coord_add(check_for_wall, direction)
                 if (
-                    coord_is_within_matrix(maze, check_for_space)
-                    and get_value(maze, check_for_space) != WALL
+                    matrix_contains_coord(maze, check_for_space)
+                    and matrix_get(maze, check_for_space) != WALL
                 ):
                     space_index = path_index_by_coord[check_for_space]
                     savings_index = space_index - current_index
@@ -96,4 +97,7 @@ def part1(file):
 
 
 if __name__ == "__main__":
-    run(part1, [("example", 0), ("puzzle_input", 1321)])
+    run(part1, [
+        TestCase("20_example", 0),
+        TestCase("20_puzzle_input", 1321),
+    ])

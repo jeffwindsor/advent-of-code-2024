@@ -1,8 +1,8 @@
-from aoc import read_data, run
+from aoc import read_data, run, TestCase
 
 
-def parse_file(filepath):
-    warehouse_map, move_lines = read_data(15, filepath).split("\n\n")
+def parse_file(data_file):
+    warehouse_map, move_lines = read_data(data_file).split("\n\n")
     grid = [list(row) for row in warehouse_map.splitlines()]
     commands = "".join(move_lines.splitlines())
     return grid, commands
@@ -91,4 +91,8 @@ def part1(filepath):
 
 
 if __name__ == "__main__":
-    run(part1, [("small_example", 2028), ("example", 10092), ("puzzle_input", 1465523)])
+    run(part1, [
+        TestCase("15_small_example", 2028),
+        TestCase("15_example", 10092),
+        TestCase("15_puzzle_input", 1465523),
+    ])

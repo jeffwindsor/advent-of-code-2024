@@ -2,27 +2,28 @@ from heapq import heappush, heappop
 from aoc import (
     read_data_as_lines,
     run,
+    TestCase,
     find_first,
-    matrix_higher_bounds,
-    get_value,
+    matrix_max_bounds,
+    matrix_get,
     DIRECTIONS_CARDINAL,
     RIGHT,
     coord_add,
-    coord_is_within_bounds_inclusive,
+    coord_in_bounds,
 )
 
 EAST = DIRECTIONS_CARDINAL.index(RIGHT)
 
 
-def parse(file):
-    matrix = read_data_as_lines(16, file)
+def parse(data_file):
+    matrix = read_data_as_lines(data_file)
     start = find_first(matrix, "S")
     end = find_first(matrix, "E")
     return matrix, start, end
 
 
 def find_lowest_score(matrix, start, end):
-    hb = matrix_higher_bounds(matrix)
+    hb = matrix_max_bounds(matrix)
     direction_cost = 1000
     forward_cost = 1
 
@@ -46,7 +47,7 @@ def find_lowest_score(matrix, start, end):
         dc = DIRECTIONS_CARDINAL[direction]
         nc = coord_add(cc, dc)
 
-        if coord_is_within_bounds_inclusive(nc, hb) and get_value(matrix, nc) != "#":
+        if coord_in_bounds(nc, hb) and matrix_get(matrix, nc) != "#":
             heappush(pq, (score + forward_cost, nc, direction))
 
         # Try rotating left and right
@@ -60,4 +61,8 @@ def part1(file):
 
 
 if __name__ == "__main__":
-    run(part1, [("example", 7036), ("example2", 11048), ("puzzle_input", 94444)])
+    run(part1, [
+        TestCase("16_example", 7036),
+        TestCase("16_example2", 11048),
+        TestCase("16_puzzle_input", 94444),
+    ])

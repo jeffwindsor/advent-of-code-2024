@@ -1,9 +1,9 @@
-from aoc import read_data_as_lines, run
+from aoc import read_data_as_lines, run, TestCase
 from itertools import pairwise
 
 
-def parse(filepath):
-    lines = read_data_as_lines(2, filepath)
+def parse(data_file):
+    lines = read_data_as_lines(data_file)
     numbers_by_line = [list(map(int, line.split(" "))) for line in lines]
     return numbers_by_line
 
@@ -33,5 +33,11 @@ def part2(file):
 
 
 if __name__ == "__main__":
-    run(part1, [("example", 2), ("puzzle_input", 306)])
-    run(part2, [("example", 4), ("puzzle_input", 366)])
+    run(part1, [
+        TestCase("02_example", 2),
+        TestCase("02_puzzle_input", 306),
+    ])
+    run(part2, [
+        TestCase("02_example", 4),
+        TestCase("02_puzzle_input", 366),
+    ])
