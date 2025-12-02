@@ -165,24 +165,104 @@ def shortest_robot_moves(pad, sequences):
     return find_shortest(flatten([robot_moves(pad, s) for s in sequences]))
 
 
-def part1(data_file):
+def find_min_length(from_button, to_button, depth, memo):
+    """
+    Find the minimum sequence length needed to move from from_button to to_button
+    at the given depth.
+
+    depth = 0: Base case - direct button presses (I'm at my directional pad)
+    depth > 0: Recursive case - need to control robots at lower depths
+
+    Uses memoization to avoid recalculating the same states.
+    """
+    # Memoization key
+    key = (from_button, to_button, depth)
+    if key in memo:
+        return memo[key]
+
+    # Base case: depth == 0 means I'm directly pressing buttons
+    # The cost is just the number of moves in the path
+    if depth == 0:
+        # Direct path on direction pad
+        paths = DIRECTION_PAD[(from_button, to_button)]
+        result = min(len(path) for path in paths)
+        memo[key] = result
+        return result
+
+    # Recursive case: need to control a robot at depth-1
+    # Get all possible paths on the direction pad
+    paths = DIRECTION_PAD[(from_button, to_button)]
+
+    min_total = float('inf')
+
+    # Try each possible path and find which one results in the shortest sequence
+    for path in paths:
+        # For this path, calculate the total length by summing the costs
+        # of each button press at the next level up
+        current_total = 0
+        current_pos = "A"  # Robot starts at A
+
+        for next_button in path:
+            # Recursively find the cost to move from current_pos to next_button
+            # at depth - 1
+            current_total += find_min_length(current_pos, next_button, depth - 1, memo)
+            current_pos = next_button
+
+        min_total = min(min_total, current_total)
+
+    memo[key] = min_total
+    return min_total
+
+
+def solve(data_file, num_directional_robots):
+    """
+    Solve the keypad problem with a given number of directional robots.
+
+    Args:
+        data_file: Input file with door codes
+        num_directional_robots: Number of directional keypads (2 for part1, 25 for part2)
+    """
     result = []
+    memo = {}
+
     for button_seq in read_data_as_lines(data_file):
-        # print("  button_seqs", [button_seq])
-        d_seqs = shortest_robot_moves(NUMBER_PAD, [button_seq])
-        # print("  d_seqs", d_seqs)
-        r_seqs = shortest_robot_moves(DIRECTION_PAD, d_seqs)
-        # print("  r_seqs", r_seqs)
-        fourty_seqs = shortest_robot_moves(DIRECTION_PAD, r_seqs)
-        # print("  40_seqs", fourty_seqs)
+        # Calculate the minimum length needed to type this sequence
+        total_length = 0
+        current_button = "A"  # Robot at numeric keypad starts at A
+
+        for target_button in button_seq:
+            # Get the paths on the numeric keypad for this transition
+            paths = NUMBER_PAD[(current_button, target_button)]
+
+            min_path_length = float('inf')
+            for path in paths:
+                # For each possible path on the numeric keypad,
+                # calculate the cost through all directional robots
+                path_length = 0
+                pos = "A"  # All directional robots start at A
+                for button in path:
+                    # Cost to type this button through num_directional_robots robots
+                    path_length += find_min_length(pos, button, num_directional_robots, memo)
+                    pos = button
+                min_path_length = min(min_path_length, path_length)
+
+            total_length += min_path_length
+            current_button = target_button
 
         button_seq_as_num = int(button_seq[:-1])
-        shortest_seq_length = len(fourty_seqs[0])
-        # print(button_seq_as_num, shortest_seq_length)
-        result.append(button_seq_as_num * shortest_seq_length)
+        result.append(button_seq_as_num * total_length)
 
-    # print("  result", result)
     return sum(result)
+
+
+def part1(data_file):
+    # 2 directional robots means depth 1 (0-indexed: robot1, robot2)
+    # Actually, let me verify with the original logic
+    return solve(data_file, 1)
+
+
+def part2(data_file):
+    return solve(data_file, 24)
 
 
 #      number pad           direction pad
@@ -205,5 +285,13 @@ if __name__ == "__main__":
             # TestCase("21_pre_example2", 2660),
             TestCase("21_example", 126384),
             TestCase("21_puzzle_input", 278748),
+        ],
+    )
+
+    run(
+        part2,
+        [
+            TestCase("21_example", 154115708116294),
+            TestCase("21_puzzle_input", 337744744231414),
         ],
     )
