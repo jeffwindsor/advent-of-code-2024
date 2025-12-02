@@ -2,9 +2,8 @@ from aoc import (
     read_data_as_lines,
     run,
     TestCase,
-    DIRECTIONS_CARDINAL,
+    Coord,
     matrix_contains_coord,
-    coord_add,
     matrix_get,
     find_first,
     matrix_size,
@@ -38,8 +37,8 @@ def dfs(maze, start, end):
         if current == end:
             return path  # Return the path when the end is reached
 
-        for direction in DIRECTIONS_CARDINAL:
-            next_position = coord_add(current, direction)
+        for direction in Coord.DIRECTIONS_CARDINAL:
+            next_position = current + direction
             if (
                 matrix_contains_coord(maze, next_position)
                 and next_position not in visited
@@ -51,8 +50,6 @@ def dfs(maze, start, end):
 
 
 def analyze_maze(maze, start, end):
-    rows, cols = matrix_size(maze)
-
     path = dfs(maze, start, end)
     if not path:
         raise ValueError("No valid path between start and end in the original maze.")
@@ -60,14 +57,14 @@ def analyze_maze(maze, start, end):
     savings_count = {}
     for current_index, current_coord in enumerate(path):
         # look in cardinal directions for walls
-        for direction in DIRECTIONS_CARDINAL:
-            check_for_wall = coord_add(current_coord, direction)
+        for direction in Coord.DIRECTIONS_CARDINAL:
+            check_for_wall = current_coord + direction
             if (
                 matrix_contains_coord(maze, check_for_wall)
                 and matrix_get(maze, check_for_wall) == WALL
             ):
                 # then one more in same direction for non wall
-                check_for_space = coord_add(check_for_wall, direction)
+                check_for_space = check_for_wall + direction
                 if (
                     matrix_contains_coord(maze, check_for_space)
                     and matrix_get(maze, check_for_space) != WALL

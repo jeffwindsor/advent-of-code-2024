@@ -2,9 +2,7 @@ from aoc import (
     read_data_as_lines,
     run,
     TestCase,
-    DIRECTIONS_ALL,
-    DIRECTIONS_INTERCARDINAL,
-    coord_in_bounds,
+    Coord,
     matrix_max_bounds,
 )
 
@@ -13,31 +11,30 @@ def parse(data_file):
     return read_data_as_lines(data_file)
 
 
-def search_word_in_direction(word, matrix, r, c, dr, dc):
+def search_word_in_direction(word, matrix, r, c, direction):
     hb = matrix_max_bounds(matrix)
     for i, char in enumerate(word):
-        new_row, new_col = r + i * dr, c + i * dc
-        if (
-            not coord_in_bounds((new_row, new_col), hb)
-            or matrix[new_row][new_col] != char
-        ):
+        new_row = r + i * direction.row
+        new_col = c + i * direction.col
+        coord = Coord(new_row, new_col)
+        if not coord.in_bounds(hb) or matrix[new_row][new_col] != char:
             return False
     return True
 
 
 def search_word(word, matrix):
     return sum(
-        search_word_in_direction(word, matrix, r, c, dr, dc)
+        search_word_in_direction(word, matrix, r, c, direction)
         for r, row in enumerate(matrix)
         for c, cell in enumerate(row)
-        for dr, dc in DIRECTIONS_ALL
+        for direction in Coord.DIRECTIONS_ALL
     )
 
 
 def is_valid_x_mas(matrix, r, c):
     if matrix[r][c] != "A":
         return False
-    corners = map(lambda cc: matrix[r + cc[0]][c + cc[1]], DIRECTIONS_INTERCARDINAL)
+    corners = map(lambda cc: matrix[r + cc.row][c + cc.col], Coord.DIRECTIONS_INTERCARDINAL)
     return "".join(corners) in {"MSMS", "MMSS", "SSMM", "SMSM"}
 
 

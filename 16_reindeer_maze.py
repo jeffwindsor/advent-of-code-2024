@@ -6,13 +6,10 @@ from aoc import (
     find_first,
     matrix_max_bounds,
     matrix_get,
-    DIRECTIONS_CARDINAL,
-    RIGHT,
-    coord_add,
-    coord_in_bounds,
+    Coord,
 )
 
-EAST = DIRECTIONS_CARDINAL.index(RIGHT)
+EAST = Coord.DIRECTIONS_CARDINAL.index(Coord.RIGHT)
 
 
 def parse(data_file):
@@ -27,12 +24,14 @@ def find_lowest_score(matrix, start, end):
     direction_cost = 1000
     forward_cost = 1
 
-    pq = []  # Priority queue: (score, y, x, direction)
-    heappush(pq, (0, start, EAST))
+    pq = []  # Priority queue: (score, counter, coord, direction)
+    counter = 0
+    heappush(pq, (0, counter, start, EAST))
+    counter += 1
     visited = set()
 
     while pq:
-        score, cc, direction = heappop(pq)
+        score, _, cc, direction = heappop(pq)
 
         # Skip if already visited
         if (cc, direction) in visited:
@@ -44,16 +43,18 @@ def find_lowest_score(matrix, start, end):
             return score
 
         # Try moving forward
-        dc = DIRECTIONS_CARDINAL[direction]
-        nc = coord_add(cc, dc)
+        dc = Coord.DIRECTIONS_CARDINAL[direction]
+        nc = cc + dc
 
-        if coord_in_bounds(nc, hb) and matrix_get(matrix, nc) != "#":
-            heappush(pq, (score + forward_cost, nc, direction))
+        if nc.in_bounds(hb) and matrix_get(matrix, nc) != "#":
+            heappush(pq, (score + forward_cost, counter, nc, direction))
+            counter += 1
 
         # Try rotating left and right
         for turn in [-1, 1]:  # Left and right
             new_direction = (direction + turn) % 4
-            heappush(pq, (score + direction_cost, cc, new_direction))
+            heappush(pq, (score + direction_cost, counter, cc, new_direction))
+            counter += 1
 
 
 def part1(file):

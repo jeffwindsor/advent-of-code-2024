@@ -3,9 +3,7 @@ from aoc import (
     read_data_as_lines,
     run,
     TestCase,
-    coord_add,
-    coord_sub,
-    coord_in_bounds,
+    Coord,
     matrix_max_bounds,
     filter_coords_in_bounds,
 )
@@ -19,7 +17,7 @@ def parse_into_char_coords(lines, empty_char):
                 continue
             if char not in result:
                 result[char] = []
-            result[char].append((row, col))
+            result[char].append(Coord(row, col))
     return result
 
 
@@ -28,24 +26,25 @@ def parse(data_file):
     return matrix_max_bounds(lines), parse_into_char_coords(lines, ".")
 
 
-def extend_in_direction(coord, diff, combine_func, bounds):
+def extend_in_direction(coord, diff, forward, bounds):
+    """Extend coordinates in a direction. forward=True adds diff, False subtracts."""
     valid_coordinates = []
-    while coord_in_bounds(coord, bounds):
+    while coord.in_bounds(bounds):
         valid_coordinates.append(coord)
-        coord = combine_func(coord, diff)
+        coord = coord + diff if forward else coord - diff
     return valid_coordinates
 
 
 def extended_pair(a, b, bounds):
-    diff = coord_sub(a, b)
-    potential_coords = [coord_add(a, diff), coord_sub(b, diff)]
+    diff = a - b
+    potential_coords = [a + diff, b - diff]
     return filter_coords_in_bounds(potential_coords, bounds)
 
 
 def extended_line(a, b, bounds):
-    diff = coord_sub(a, b)
-    return extend_in_direction(a, diff, coord_add, bounds) + extend_in_direction(
-        b, diff, coord_sub, bounds
+    diff = a - b
+    return extend_in_direction(a, diff, True, bounds) + extend_in_direction(
+        b, diff, False, bounds
     )
 
 
