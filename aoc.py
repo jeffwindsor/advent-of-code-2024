@@ -279,6 +279,36 @@ def dijkstra(
     return distances
 
 
+# ========== Number/Math Utilities ==========
+
+
+def count_digits(n: int) -> int:
+    """
+    Count the number of digits in a positive integer.
+
+    Args:
+        n: A non-negative integer
+
+    Returns:
+        The number of digits in n (e.g., 123 -> 3, 0 -> 1)
+
+    Examples:
+        >>> count_digits(0)
+        1
+        >>> count_digits(123)
+        3
+        >>> count_digits(9999)
+        4
+    """
+    if n == 0:
+        return 1
+    count = 0
+    while n > 0:
+        count += 1
+        n //= 10
+    return count
+
+
 # ========== Matrix/Grid Functions ==========
 
 
@@ -453,6 +483,8 @@ __all__ = [
     "bfs",
     "dfs",
     "dijkstra",
+    # Number/Math utilities
+    "count_digits",
     # Matrix functions
     "matrix_size",
     "matrix_max_bounds",
