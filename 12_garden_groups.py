@@ -1,10 +1,6 @@
-from aoc import read_data_as_lines, run, TestCase
+from aoc import read_data_as_lines, run, TestCase, Coord
 from collections import deque
 from dataclasses import dataclass
-
-
-# Constants
-DIRECTIONS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
 
 @dataclass
@@ -60,8 +56,8 @@ def flood_fill_region(
         x, y = stack.pop()
         area += 1
 
-        for dx, dy in DIRECTIONS:
-            nx, ny = x + dx, y + dy
+        for direction in Coord.DIRECTIONS_CARDINAL:
+            nx, ny = x + direction.row, y + direction.col
 
             if is_valid_and_same_plant(nx, ny, plant, grid, rows, cols):
                 if not visited[nx][ny]:
@@ -186,8 +182,8 @@ def find_region_cells(
         cx, cy = queue.popleft()
         region_cells.append((cx, cy))
 
-        for dx, dy in DIRECTIONS:
-            nx, ny = cx + dx, cy + dy
+        for direction in Coord.DIRECTIONS_CARDINAL:
+            nx, ny = cx + direction.row, cy + direction.col
             if (
                 is_valid_and_same_plant(nx, ny, plant, grid, rows, cols)
                 and not visited[nx][ny]
@@ -205,8 +201,8 @@ def count_perimeter_sides(
     sides = 0
     for x, y in cells:
         plant = grid[x][y]
-        for dx, dy in DIRECTIONS:
-            nx, ny = x + dx, y + dy
+        for direction in Coord.DIRECTIONS_CARDINAL:
+            nx, ny = x + direction.row, y + direction.col
             if not is_valid_and_same_plant(nx, ny, plant, grid, rows, cols):
                 sides += 1
     return sides

@@ -1,4 +1,4 @@
-from aoc import read_data_as_lines, run, TestCase
+from aoc import read_data_as_lines, run, TestCase, Coord
 from itertools import product
 from collections import deque
 
@@ -17,7 +17,6 @@ def find_all_shortest_paths(matrix, start, end):
         list of list of tuple: All shortest paths as lists of cells (row, col).
     """
     rows, cols = len(matrix), len(matrix[0])
-    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # Right, Down, Left, Up
     queue = deque([(start, [start])])  # Queue stores (current_cell, path_so_far)
     shortest_paths = []
     shortest_path_length = float("inf")  # To track the shortest path length
@@ -39,8 +38,8 @@ def find_all_shortest_paths(matrix, start, end):
             continue
 
         # Explore neighbors
-        for dr, dc in directions:
-            new_row, new_col = cell[0] + dr, cell[1] + dc
+        for direction in Coord.DIRECTIONS_CARDINAL:
+            new_row, new_col = cell[0] + direction.row, cell[1] + direction.col
             new_cell = (new_row, new_col)
 
             if (
@@ -55,7 +54,7 @@ def find_all_shortest_paths(matrix, start, end):
 
 
 def sub_coord(a, b):
-    return (a[0] - b[0], a[1] - b[1])
+    return Coord(a[0] - b[0], a[1] - b[1])
 
 
 def flatten(xss):
@@ -87,7 +86,12 @@ num_coords = {key: (r, c) for r, row in enumerate(num_pad) for c, key in enumera
 dir_pad = [[None, "^", "A"], ["<", "v", ">"]]
 dirs = [d for d in flatten(dir_pad) if d is not None]
 dir_coords = {key: (r, c) for r, row in enumerate(dir_pad) for c, key in enumerate(row)}
-diff_coord_dirs = {(0, -1): "<", (0, 1): ">", (-1, 0): "^", (1, 0): "v"}
+diff_coord_dirs = {
+    Coord(0, -1): "<",
+    Coord(0, 1): ">",
+    Coord(-1, 0): "^",
+    Coord(1, 0): "v"
+}
 
 
 def to_direction_seq(coord_path):
