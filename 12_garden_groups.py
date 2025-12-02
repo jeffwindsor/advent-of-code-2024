@@ -1,4 +1,14 @@
-from aoc import read_data_as_char_grid, run, TestCase, Coord, create_visited_grid, matrix_size
+from aoc import (
+    read_data_as_char_grid,
+    run,
+    TestCase,
+    Coord,
+    create_visited_grid,
+    matrix_size,
+    matrix_max_bounds,
+    matrix_get,
+    count_continuous_segments,
+)
 from collections import deque
 from dataclasses import dataclass
 
@@ -14,79 +24,51 @@ def parse(data_file: str) -> list[list[str]]:
     return read_data_as_char_grid(data_file)
 
 
-def is_valid_cell(x: int, y: int, rows: int, cols: int) -> bool:
-    """Check if coordinates are within grid bounds."""
-    return 0 <= x < rows and 0 <= y < cols
-
-
 def is_valid_and_same_plant(
-    x: int, y: int, plant: str, grid: list[list[str]], rows: int, cols: int
+    coord: Coord, plant: str, grid: list[list[str]]
 ) -> bool:
     """Check if cell is valid and contains the same plant type."""
-    return is_valid_cell(x, y, rows, cols) and grid[x][y] == plant
+    return coord.in_bounds(matrix_max_bounds(grid)) and matrix_get(grid, coord) == plant
 
 
 def flood_fill_region(
-    r: int,
-    c: int,
+    start: Coord,
     plant: str,
     grid: list[list[str]],
     visited: list[list[bool]],
-    rows: int,
-    cols: int,
 ) -> tuple[int, int]:
     """
     Use flood fill (DFS) to find all cells in a region and calculate area/perimeter.
 
     Args:
-        r, c: Starting coordinates
+        start: Starting coordinate
         plant: Plant type for this region
         grid: 2D grid of plant types
         visited: Tracking visited cells
-        rows, cols: Grid dimensions
 
     Returns:
         Tuple of (area, perimeter)
     """
-    stack = [(r, c)]
-    visited[r][c] = True
+    stack = [start]
+    visited[start.row][start.col] = True
     area, perimeter = 0, 0
 
     while stack:
-        x, y = stack.pop()
+        current = stack.pop()
         area += 1
 
         for direction in Coord.DIRECTIONS_CARDINAL:
-            nx, ny = x + direction.row, y + direction.col
+            neighbor = current + direction
 
-            if is_valid_and_same_plant(nx, ny, plant, grid, rows, cols):
-                if not visited[nx][ny]:
-                    stack.append((nx, ny))
-                    visited[nx][ny] = True
+            if is_valid_and_same_plant(neighbor, plant, grid):
+                if not visited[neighbor.row][neighbor.col]:
+                    stack.append(neighbor)
+                    visited[neighbor.row][neighbor.col] = True
             else:
                 # Either out of bounds or different plant - counts as perimeter
                 perimeter += 1
 
     return area, perimeter
-
-
-def count_continuous_segments(sorted_coords: list[int]) -> int:
-    """
-    Count continuous segments in sorted coordinates.
-
-    Examples:
-        [0, 1, 2, 5, 6] -> 2 segments: [0,1,2] and [5,6]
-        [0, 1, 2] -> 1 segment
-        [0, 2, 4] -> 3 segments
-    """
-    if not sorted_coords:
-        return 0
-
-    segments = 1
-    for i in range(1, len(sorted_coords)):
-        if sorted_coords[i] != sorted_coords[i - 1] + 1:
-            segments += 1  # Gap found, new segment starts
-    return segments
 
 
 def count_sides_from_boundaries(boundaries: set[tuple[tuple[int, int], str]]) -> int:
@@ -142,17 +124,16 @@ def calculate_area_and_perimeter(grid: list[list[str]]) -> list[Region]:
     A region is a connected group of cells with the same plant type.
     Perimeter counts edges that border different plants or the grid boundary.
     """
-    rows, cols = len(grid), len(grid[0])
-    visited = create_visited_grid(matrix_size(grid))
+    size = matrix_size(grid)
+    visited = create_visited_grid(size)
     results = []
 
-    for r in range(rows):
-        for c in range(cols):
+    for r in range(size.row):
+        for c in range(size.col):
             if not visited[r][c]:
-                plant = grid[r][c]
-                area, perimeter = flood_fill_region(
-                    r, c, plant, grid, visited, rows, cols
-                )
+                coord = Coord(r, c)
+                plant = matrix_get(grid, coord)
+                area, perimeter = flood_fill_region(coord, plant, grid, visited)
                 results.append(Region(plant, area, perimeter))
 
     return results
@@ -165,105 +146,104 @@ def price_perimeter(file: str) -> int:
 
 
 def find_region_cells(
-    start_x: int,
-    start_y: int,
+    start: Coord,
     grid: list[list[str]],
     visited: list[list[bool]],
-    rows: int,
-    cols: int,
-) -> list[tuple[int, int]]:
+) -> list[Coord]:
     """Find all cells in the same region using BFS."""
-    queue = deque([(start_x, start_y)])
+    queue = deque([start])
     region_cells = []
-    plant = grid[start_x][start_y]
-    visited[start_x][start_y] = True
+    plant = matrix_get(grid, start)
+    visited[start.row][start.col] = True
 
     while queue:
-        cx, cy = queue.popleft()
-        region_cells.append((cx, cy))
+        current = queue.popleft()
+        region_cells.append(current)
 
         for direction in Coord.DIRECTIONS_CARDINAL:
-            nx, ny = cx + direction.row, cy + direction.col
+            neighbor = current + direction
             if (
-                is_valid_and_same_plant(nx, ny, plant, grid, rows, cols)
-                and not visited[nx][ny]
+                is_valid_and_same_plant(neighbor, plant, grid)
+                and not visited[neighbor.row][neighbor.col]
             ):
-                visited[nx][ny] = True
-                queue.append((nx, ny))
+                visited[neighbor.row][neighbor.col] = True
+                queue.append(neighbor)
 
     return region_cells
 
 
-def count_perimeter_sides(
-    cells: list[tuple[int, int]], grid: list[list[str]], rows: int, cols: int
-) -> int:
+def count_perimeter_sides(cells: list[Coord], grid: list[list[str]]) -> int:
     """Count perimeter sides for a region."""
     sides = 0
-    for x, y in cells:
-        plant = grid[x][y]
+    for coord in cells:
+        plant = matrix_get(grid, coord)
         for direction in Coord.DIRECTIONS_CARDINAL:
-            nx, ny = x + direction.row, y + direction.col
-            if not is_valid_and_same_plant(nx, ny, plant, grid, rows, cols):
+            neighbor = coord + direction
+            if not is_valid_and_same_plant(neighbor, plant, grid):
                 sides += 1
     return sides
 
 
 def calculate_area_and_sides(grid: list[list[str]]) -> list[tuple[str, int, int]]:
     """Calculate area and sides for each region using flood fill with direction tracking."""
-    rows, cols = len(grid), len(grid[0])
-    visited = create_visited_grid(matrix_size(grid))
+    size = matrix_size(grid)
+    visited = create_visited_grid(size)
 
-    def flood_fill(r: int, c: int, plant: str) -> tuple[int, int]:
-        stack = [(r, c)]
-        visited[r][c] = True
+    def flood_fill(start: Coord, plant: str) -> tuple[int, int]:
+        stack = [start]
+        visited[start.row][start.col] = True
         area = 0
         boundaries = set()  # Store all boundary edges as unique segments
 
+        direction_map = {
+            Coord.UP: "U",
+            Coord.DOWN: "D",
+            Coord.LEFT: "L",
+            Coord.RIGHT: "R",
+        }
+
         while stack:
-            x, y = stack.pop()
+            current = stack.pop()
             area += 1
             # Check all 4 directions
-            for dx, dy, direction in [
-                (-1, 0, "U"),
-                (1, 0, "D"),
-                (0, -1, "L"),
-                (0, 1, "R"),
-            ]:
-                nx, ny = x + dx, y + dy
-                if is_valid_and_same_plant(nx, ny, plant, grid, rows, cols):
-                    if not visited[nx][ny]:
-                        stack.append((nx, ny))
-                        visited[nx][ny] = True
+            for direction in Coord.DIRECTIONS_CARDINAL:
+                neighbor = current + direction
+                if is_valid_and_same_plant(neighbor, plant, grid):
+                    if not visited[neighbor.row][neighbor.col]:
+                        stack.append(neighbor)
+                        visited[neighbor.row][neighbor.col] = True
                 else:
                     # Out of bounds or different plant - add boundary segment
-                    boundaries.add(((x, y), direction))
+                    boundaries.add(((current.row, current.col), direction_map[direction]))
 
         # Count continuous sides from boundary edges
         sides = count_sides_from_boundaries(boundaries)
         return area, sides
 
     results = []
-    for r in range(rows):
-        for c in range(cols):
+    for r in range(size.row):
+        for c in range(size.col):
             if not visited[r][c]:
-                plant = grid[r][c]
-                area, sides = flood_fill(r, c, plant)
+                coord = Coord(r, c)
+                plant = matrix_get(grid, coord)
+                area, sides = flood_fill(coord, plant)
                 results.append((plant, area, sides))
     return results
 
 
 def calculate_total_price(grid: list[list[str]]) -> int:
     """Calculate total price for all regions (area * perimeter)."""
-    rows, cols = len(grid), len(grid[0])
-    visited = create_visited_grid(matrix_size(grid))
+    size = matrix_size(grid)
+    visited = create_visited_grid(size)
     total_price = 0
 
-    for i in range(rows):
-        for j in range(cols):
-            if not visited[i][j]:
-                region_cells = find_region_cells(i, j, grid, visited, rows, cols)
+    for r in range(size.row):
+        for c in range(size.col):
+            if not visited[r][c]:
+                coord = Coord(r, c)
+                region_cells = find_region_cells(coord, grid, visited)
                 area = len(region_cells)
-                sides = count_perimeter_sides(region_cells, grid, rows, cols)
+                sides = count_perimeter_sides(region_cells, grid)
                 total_price += area * sides
 
     return total_price

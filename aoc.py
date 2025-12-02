@@ -225,37 +225,52 @@ def filter_coords_in_bounds(
 
 
 def bfs(
-    start: Coord,
-    neighbors_func: Callable[[Coord], list[Coord]],
-    goal_func: Callable[[Coord], bool] | None = None,
-) -> dict[Coord, int] | list[Coord]:
+    start: Any,
+    neighbors_func: Callable[[Any], list[Any]],
+    goal_func: Callable[[Any], bool] | None = None,
+) -> dict[Any, int] | list[Any]:
     """
     Generic breadth-first search algorithm.
 
     Args:
-        start: Starting coordinate
-        neighbors_func: Function that returns valid neighbors for a coordinate
+        start: Starting state (Coord, tuple, or any hashable type)
+        neighbors_func: Function that returns valid neighbors for a state
         goal_func: Optional function to check if goal is reached
 
     Returns:
-        If goal_func is None: dict mapping coordinates to distances from start
-        If goal_func provided: list of coordinates forming path to goal, or empty list if no path
+        If goal_func is None: dict mapping states to distances from start
+        If goal_func provided: list of states forming path to goal, or empty list if no path
+
+    Examples:
+        # Find all distances
+        >>> distances = bfs(start_coord, neighbors_func)
+
+        # Find path to goal
+        >>> path = bfs(start_coord, neighbors_func, lambda c: c == goal)
     """
-    queue = deque([(start, [start])])
+    queue = deque([start])
     visited = {start}
     distances = {start: 0}
+    parents = {start: None}
 
     while queue:
-        current, path = queue.popleft()
+        current = queue.popleft()
 
         if goal_func and goal_func(current):
-            return path
+            # Reconstruct path
+            path = []
+            node = current
+            while node is not None:
+                path.append(node)
+                node = parents[node]
+            return list(reversed(path))
 
         for neighbor in neighbors_func(current):
             if neighbor not in visited:
                 visited.add(neighbor)
                 distances[neighbor] = distances[current] + 1
-                queue.append((neighbor, path + [neighbor]))
+                parents[neighbor] = current
+                queue.append(neighbor)
 
     return distances if not goal_func else []
 
@@ -363,27 +378,35 @@ def dfs_grid_path(
 
 
 def dijkstra(
-    start: Coord,
-    neighbors_func: Callable[[Coord], list[tuple[Coord, int]]],
-    goal: Coord | None = None,
-) -> dict[Coord, int]:
+    start: Any,
+    neighbors_func: Callable[[Any], list[tuple[Any, int]]],
+    goal: Any | None = None,
+) -> dict[Any, int]:
     """
-    Dijkstra's shortest path algorithm.
+    Dijkstra's shortest path algorithm (generalized for any hashable state).
 
     Args:
-        start: Starting coordinate
-        neighbors_func: Function returning list of (neighbor, cost) tuples
-        goal: Optional goal coordinate (returns early if found)
+        start: Starting state (can be Coord, tuple, or any hashable type)
+        neighbors_func: Function returning list of (neighbor_state, cost) tuples
+        goal: Optional goal state (returns early if found)
 
     Returns:
-        Dictionary mapping coordinates to shortest distances from start
+        Dictionary mapping states to shortest distances from start
+
+    Examples:
+        # Original usage with Coord
+        >>> distances = dijkstra(Coord(0,0), neighbors_func)
+
+        # New usage with state tuples (coord, direction)
+        >>> distances = dijkstra((Coord(0,0), 0), state_neighbors_func)
     """
-    pq = [(0, start)]
+    counter = 0
+    pq = [(0, counter, start)]
     distances = {start: 0}
     visited = set()
 
     while pq:
-        dist, current = heappop(pq)
+        dist, _, current = heappop(pq)
 
         if current in visited:
             continue
@@ -397,12 +420,41 @@ def dijkstra(
             new_dist = dist + cost
             if neighbor not in distances or new_dist < distances[neighbor]:
                 distances[neighbor] = new_dist
-                heappush(pq, (new_dist, neighbor))
+                counter += 1
+                heappush(pq, (new_dist, counter, neighbor))
 
     return distances
 
 
 # ========== Number/Math Utilities ==========
+
+
+def count_continuous_segments(sorted_coords: list[int]) -> int:
+    """
+    Count continuous segments in sorted coordinates.
+
+    Args:
+        sorted_coords: List of sorted integers
+
+    Returns:
+        Number of continuous segments
+
+    Examples:
+        >>> count_continuous_segments([0, 1, 2, 5, 6])
+        2  # Two segments: [0,1,2] and [5,6]
+        >>> count_continuous_segments([0, 1, 2])
+        1  # One segment
+        >>> count_continuous_segments([0, 2, 4])
+        3  # Three segments
+    """
+    if not sorted_coords:
+        return 0
+
+    segments = 1
+    for i in range(1, len(sorted_coords)):
+        if sorted_coords[i] != sorted_coords[i - 1] + 1:
+            segments += 1
+    return segments
 
 
 def count_digits(n: int) -> int:
@@ -456,6 +508,11 @@ def matrix_get(matrix: Grid, coord: Coord) -> Any:
     return matrix[coord.row][coord.col]
 
 
+def matrix_set(matrix: Grid, coord: Coord, value: Any) -> None:
+    """Set value at coordinate in matrix."""
+    matrix[coord.row][coord.col] = value
+
+
 def find_first(matrix: Grid, value: Any) -> Coord | None:
     """Find first occurrence of value in matrix, return coordinate or None."""
     for r, row in enumerate(matrix):
@@ -490,6 +547,32 @@ def matrix_coords(matrix: Grid) -> Iterator[tuple[Coord, Any]]:
             yield Coord(r, c), value
 
 
+def search_in_direction(
+    matrix: Grid,
+    start: Coord,
+    direction: Coord,
+    target: str
+) -> bool:
+    """
+    Search for a string in the matrix following a specific direction.
+
+    Args:
+        matrix: 2D grid to search in
+        start: Starting coordinate
+        direction: Direction vector to follow
+        target: String to search for
+
+    Returns:
+        True if the target string is found in the specified direction
+    """
+    max_bounds = matrix_max_bounds(matrix)
+    for i, char in enumerate(target):
+        coord = Coord(start.row + i * direction.row, start.col + i * direction.col)
+        if not coord.in_bounds(max_bounds) or matrix_get(matrix, coord) != char:
+            return False
+    return True
+
+
 def group_by_value(matrix: Grid, exclude: Any | None = None) -> dict[Any, list[Coord]]:
     """
     Group coordinates by their cell values.
@@ -520,6 +603,20 @@ def create_visited_grid(size: Coord, initial_value: bool = False) -> list[list[b
         2D list of booleans
     """
     return [[initial_value] * size.col for _ in range(size.row)]
+
+
+def create_grid(size: int, initial_value: Any = ".") -> Grid:
+    """
+    Create a square grid filled with initial value.
+
+    Args:
+        size: Size of the square grid (size x size)
+        initial_value: Value to fill the grid with (default: '.')
+
+    Returns:
+        2D list initialized with the specified value
+    """
+    return [[initial_value for _ in range(size)] for _ in range(size)]
 
 
 # ========== Data Reading ==========
@@ -608,17 +705,21 @@ __all__ = [
     "dfs_grid_path",
     "dijkstra",
     # Number/Math utilities
+    "count_continuous_segments",
     "count_digits",
     # Matrix functions
     "matrix_size",
     "matrix_max_bounds",
     "matrix_contains_coord",
     "matrix_get",
+    "matrix_set",
     "find_first",
     "find_all",
     "matrix_coords",
+    "search_in_direction",
     "group_by_value",
     "create_visited_grid",
+    "create_grid",
     # Data reading
     "read_data",
     "read_data_as_lines",

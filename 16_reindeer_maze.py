@@ -1,4 +1,3 @@
-from heapq import heappush, heappop
 from aoc import (
     read_data_as_lines,
     run,
@@ -7,6 +6,7 @@ from aoc import (
     matrix_max_bounds,
     matrix_get,
     Coord,
+    dijkstra,
 )
 
 EAST = Coord.DIRECTIONS_CARDINAL.index(Coord.RIGHT)
@@ -20,88 +20,66 @@ def parse(data_file):
 
 
 def find_lowest_score(matrix, start, end):
-    hb = matrix_max_bounds(matrix)
+    max_bounds = matrix_max_bounds(matrix)
     direction_cost = 1000
     forward_cost = 1
 
-    pq = []  # Priority queue: (score, counter, coord, direction)
-    counter = 0
-    heappush(pq, (0, counter, start, EAST))
-    counter += 1
-    visited = set()
-
-    while pq:
-        score, _, cc, direction = heappop(pq)
-
-        # Skip if already visited
-        if (cc, direction) in visited:
-            continue
-        visited.add((cc, direction))
-
-        # If we reach the end, return the score
-        if cc == end:
-            return score
+    def neighbors_func(state):
+        """Return list of (next_state, cost) tuples."""
+        coord, direction = state
+        neighbors = []
 
         # Try moving forward
         dc = Coord.DIRECTIONS_CARDINAL[direction]
-        nc = cc + dc
-
-        if nc.in_bounds(hb) and matrix_get(matrix, nc) != "#":
-            heappush(pq, (score + forward_cost, counter, nc, direction))
-            counter += 1
-
-        # Try rotating left and right
-        for turn in [-1, 1]:  # Left and right
-            new_direction = (direction + turn) % 4
-            heappush(pq, (score + direction_cost, counter, cc, new_direction))
-            counter += 1
-
-
-def find_all_best_path_tiles(matrix, start, end):
-    """Find all tiles that are part of at least one best path."""
-    hb = matrix_max_bounds(matrix)
-    direction_cost = 1000
-    forward_cost = 1
-
-    # First pass: find the minimum score to reach each (coord, direction) state
-    pq = []
-    counter = 0
-    heappush(pq, (0, counter, start, EAST))
-    counter += 1
-    best_scores = {}  # (coord, direction) -> best score
-
-    while pq:
-        score, _, cc, direction = heappop(pq)
-
-        state = (cc, direction)
-        # Skip if we've already found a better path to this state
-        if state in best_scores and best_scores[state] < score:
-            continue
-        best_scores[state] = score
-
-        # If we reach the end, continue to explore other paths
-        if cc == end:
-            continue
-
-        # Try moving forward
-        dc = Coord.DIRECTIONS_CARDINAL[direction]
-        nc = cc + dc
-
-        if nc.in_bounds(hb) and matrix_get(matrix, nc) != "#":
-            new_state = (nc, direction)
-            new_score = score + forward_cost
-            if new_state not in best_scores or best_scores[new_state] >= new_score:
-                heappush(pq, (new_score, counter, nc, direction))
-                counter += 1
+        nc = coord + dc
+        if nc.in_bounds(max_bounds) and matrix_get(matrix, nc) != "#":
+            neighbors.append(((nc, direction), forward_cost))
 
         # Try rotating left and right
         for turn in [-1, 1]:
             new_direction = (direction + turn) % 4
-            new_state = (cc, new_direction)
-            new_score = score + direction_cost
-            if new_state not in best_scores or best_scores[new_state] >= new_score:
-                heappush(pq, (new_score, counter, cc, new_direction))
-                counter += 1
+            neighbors.append(((coord, new_direction), direction_cost))
+
+        return neighbors
+
+    # Use generalized dijkstra with (coord, direction) state tuples
+    start_state = (start, EAST)
+    distances = dijkstra(start_state, neighbors_func)
+
+    # Find minimum distance to end in any direction
+    return min(
+        distances.get((end, d), float('inf'))
+        for d in range(4)
+    )
+
+
+def find_all_best_path_tiles(matrix, start, end):
+    """Find all tiles that are part of at least one best path."""
+    max_bounds = matrix_max_bounds(matrix)
+    direction_cost = 1000
+    forward_cost = 1
+
+    def neighbors_func(state):
+        """Return list of (next_state, cost) tuples."""
+        coord, direction = state
+        neighbors = []
+
+        # Try moving forward
+        dc = Coord.DIRECTIONS_CARDINAL[direction]
+        nc = coord + dc
+        if nc.in_bounds(max_bounds) and matrix_get(matrix, nc) != "#":
+            neighbors.append(((nc, direction), forward_cost))
+
+        # Try rotating left and right
+        for turn in [-1, 1]:
+            new_direction = (direction + turn) % 4
+            neighbors.append(((coord, new_direction), direction_cost))
+
+        return neighbors
+
+    # First pass: find the minimum score to reach each (coord, direction) state
+    start_state = (start, EAST)
+    best_scores = dijkstra(start_state, neighbors_func)
 
     # Find the minimum score to reach the end in any direction
     min_end_score = min(
@@ -119,16 +97,16 @@ def find_all_best_path_tiles(matrix, start, end):
     visited_backtrack = set(backtrack_queue)
 
     while backtrack_queue:
-        cc, direction = backtrack_queue.pop(0)
-        tiles_on_best_paths.add(cc)
-        current_score = best_scores[(cc, direction)]
+        coord, direction = backtrack_queue.pop(0)
+        tiles_on_best_paths.add(coord)
+        current_score = best_scores[(coord, direction)]
 
         # Check if we can reverse the forward move
         dc = Coord.DIRECTIONS_CARDINAL[direction]
-        pc = cc - dc  # previous coord
+        prev_coord = coord - dc
 
-        if pc.in_bounds(hb) and matrix_get(matrix, pc) != "#":
-            prev_state = (pc, direction)
+        if prev_coord.in_bounds(max_bounds) and matrix_get(matrix, prev_coord) != "#":
+            prev_state = (prev_coord, direction)
             expected_score = current_score - forward_cost
             if prev_state in best_scores and best_scores[prev_state] == expected_score:
                 if prev_state not in visited_backtrack:
@@ -138,7 +116,7 @@ def find_all_best_path_tiles(matrix, start, end):
         # Check if we rotated to get here
         for turn in [-1, 1]:
             prev_direction = (direction - turn) % 4
-            prev_state = (cc, prev_direction)
+            prev_state = (coord, prev_direction)
             expected_score = current_score - direction_cost
             if prev_state in best_scores and best_scores[prev_state] == expected_score:
                 if prev_state not in visited_backtrack:
