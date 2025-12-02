@@ -1,9 +1,24 @@
 import os
 import inspect
+import time
+import tracemalloc
 from dataclasses import dataclass
 from typing import Callable, Any, Iterator
 from collections import deque
 from heapq import heappush, heappop
+
+
+# ========== Configuration ==========
+
+
+def _is_perf_enabled() -> bool:
+    """Check if performance metrics should be collected via AOC_PERF env var."""
+    value = os.getenv('AOC_PERF', '').lower()
+    return value in ('1', 'true', 'yes')
+
+
+# Cache at module load time for zero per-test overhead
+PERF_ENABLED = _is_perf_enabled()
 
 
 # ========== Type Aliases ==========
@@ -100,6 +115,26 @@ TRUE_COLOR = "\033[92m"
 END_COLOR = "\033[0m"
 
 
+def format_time(seconds: float) -> str:
+    """Format time duration for display."""
+    if seconds < 0.001:
+        return f"{seconds * 1_000_000:.0f}µs"
+    elif seconds < 1.0:
+        return f"{seconds * 1000:.2f}ms"
+    else:
+        return f"{seconds:.2f}s"
+
+
+def format_memory(bytes_used: int) -> str:
+    """Format memory usage for display."""
+    if bytes_used < 1024:
+        return f"{bytes_used}B"
+    elif bytes_used < 1024 * 1024:
+        return f"{bytes_used / 1024:.1f}KB"
+    else:
+        return f"{bytes_used / (1024 * 1024):.1f}MB"
+
+
 @dataclass
 class TestCase:
     """A single test case with data file and expected output."""
@@ -110,14 +145,14 @@ class TestCase:
 
 def run(func: Callable[[str], Any], test_cases: list[TestCase]) -> None:
     """
-    Execute test cases for a given function and report results.
+    Execute test cases for a given function and report results with performance metrics.
 
     Args:
         func: Function to test (takes string data_file, returns any value)
         test_cases: List of TestCase objects
 
     The function prints colored output:
-    - Green for passing tests showing the actual result
+    - Green for passing tests showing the actual result with time and memory
     - Red for failing tests showing expected vs actual
     - Summary line showing total pass/fail count
     """
@@ -129,16 +164,39 @@ def run(func: Callable[[str], Any], test_cases: list[TestCase]) -> None:
 
     for test_case in test_cases:
         try:
+            # Start performance tracking (if enabled)
+            if PERF_ENABLED:
+                tracemalloc.start()
+                start_time = time.perf_counter()
+
+            # Execute test
             actual = func(test_case.data_file)
+
+            # Capture and format metrics (if enabled)
+            if PERF_ENABLED:
+                elapsed_time = time.perf_counter() - start_time
+                current_mem, peak_mem = tracemalloc.get_traced_memory()
+                tracemalloc.stop()
+
+                time_str = format_time(elapsed_time)
+                mem_str = format_memory(peak_mem)
+                metrics = f" ({time_str}, {mem_str})"
+            else:
+                metrics = ""
+
+            # Report results
             if test_case.expected == actual:
-                print(f"  {test_case.data_file}: {TRUE_COLOR}{actual}{END_COLOR}")
+                print(f"  {test_case.data_file}: {TRUE_COLOR}{actual}{metrics}{END_COLOR}")
                 passed += 1
             else:
                 print(
-                    f"  {test_case.data_file}: {FALSE_COLOR}Expected {test_case.expected} but actual is {actual}{END_COLOR}"
+                    f"  {test_case.data_file}: {FALSE_COLOR}Expected {test_case.expected} but actual is {actual}{metrics}{END_COLOR}"
                 )
                 failed += 1
         except Exception as e:
+            # Stop tracking on error (if enabled)
+            if PERF_ENABLED and tracemalloc.is_tracing():
+                tracemalloc.stop()
             print(
                 f"  {test_case.data_file}: {FALSE_COLOR}ERROR: {type(e).__name__}: {e}{END_COLOR}"
             )
