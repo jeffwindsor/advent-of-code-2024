@@ -1,9 +1,8 @@
-from re import findall
-from aoc import read_data_as_lines, run, TestCase
+from aoc import read_data_as_lines, extract_ints, run, TestCase
 
 
 def parse_line(line):
-    px, py, vx, vy = map(int, findall(r"-?\d+", line))
+    px, py, vx, vy = extract_ints(line)
     return ((px, py), (vx, vy))
 
 
