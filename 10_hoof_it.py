@@ -1,5 +1,5 @@
 from aoc import (
-    read_data_as_lines,
+    read_data_as_int_grid,
     run,
     TestCase,
     Coord,
@@ -86,10 +86,7 @@ def bfs(matrix, start, directions, can_visit):
 
 def parse(data_file):
     # problem wants to follow path of increasing values from 0, so EMPTY = -1
-    return [
-        list(map(lambda x: int(x) if x.isdigit() else -1, line))
-        for line in read_data_as_lines(data_file)
-    ]
+    return read_data_as_int_grid(data_file, empty_value=-1)
 
 
 def find_reachable_nines(topographic_map, start_coord):

@@ -1,4 +1,4 @@
-from aoc import read_data, run, TestCase
+from aoc import read_data, run, TestCase, Coord
 
 # Constants
 ROBOT = "@"
@@ -8,7 +8,12 @@ BOX = "O"
 BOX_LEFT = "["
 BOX_RIGHT = "]"
 
-DIRECTIONS = {"^": (-1, 0), "v": (1, 0), "<": (0, -1), ">": (0, 1)}
+DIRECTIONS = {
+    "^": Coord.UP,
+    "v": Coord.DOWN,
+    "<": Coord.LEFT,
+    ">": Coord.RIGHT
+}
 
 
 def parse_file(data_file):
@@ -46,7 +51,8 @@ def simulate_moves(grid, commands):
     robot_pos = find_robot(grid)
 
     for command in commands:
-        dr, dc = DIRECTIONS[command]
+        direction = DIRECTIONS[command]
+        dr, dc = direction.row, direction.col
         r, c = robot_pos
 
         moveable, boxes = moveable_boxes(grid, dr, dc, r, c)
@@ -194,7 +200,8 @@ def simulate_moves_wide(grid, commands):
     robot_pos = find_robot(grid)
 
     for command in commands:
-        dr, dc = DIRECTIONS[command]
+        direction = DIRECTIONS[command]
+        dr, dc = direction.row, direction.col
         r, c = robot_pos
         nr, nc = r + dr, c + dc
         next_cell = grid[nr][nc]

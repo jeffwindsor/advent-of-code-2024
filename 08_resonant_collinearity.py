@@ -6,24 +6,13 @@ from aoc import (
     Coord,
     matrix_max_bounds,
     filter_coords_in_bounds,
+    group_by_value,
 )
-
-
-def parse_into_char_coords(lines, empty_char):
-    result = {}
-    for row, line in enumerate(lines):
-        for col, char in enumerate(line.strip()):
-            if char == empty_char:
-                continue
-            if char not in result:
-                result[char] = []
-            result[char].append(Coord(row, col))
-    return result
 
 
 def parse(data_file):
     lines = read_data_as_lines(data_file)
-    return matrix_max_bounds(lines), parse_into_char_coords(lines, ".")
+    return matrix_max_bounds(lines), group_by_value(lines, exclude=".")
 
 
 def extend_in_direction(coord, diff, forward, bounds):
