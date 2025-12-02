@@ -3,7 +3,7 @@ from aoc import (
     run,
     TestCase,
     Coord,
-    matrix_max_bounds,
+    search_in_direction,
 )
 
 
@@ -11,20 +11,9 @@ def parse(data_file):
     return read_data_as_lines(data_file)
 
 
-def search_word_in_direction(word, matrix, r, c, direction):
-    hb = matrix_max_bounds(matrix)
-    for i, char in enumerate(word):
-        new_row = r + i * direction.row
-        new_col = c + i * direction.col
-        coord = Coord(new_row, new_col)
-        if not coord.in_bounds(hb) or matrix[new_row][new_col] != char:
-            return False
-    return True
-
-
 def search_word(word, matrix):
     return sum(
-        search_word_in_direction(word, matrix, r, c, direction)
+        search_in_direction(matrix, Coord(r, c), direction, word)
         for r, row in enumerate(matrix)
         for c, cell in enumerate(row)
         for direction in Coord.DIRECTIONS_ALL

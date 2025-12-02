@@ -1,5 +1,14 @@
-from aoc import parse_coord_pairs, run, TestCase, Coord
-from collections import deque
+from aoc import (
+    parse_coord_pairs,
+    run,
+    TestCase,
+    Coord,
+    create_grid,
+    matrix_set,
+    matrix_get,
+    matrix_max_bounds,
+    bfs,
+)
 
 
 def parse_input(data_file):
@@ -7,51 +16,39 @@ def parse_input(data_file):
 
 
 def simulate_memory_space(grid_size, byte_positions, total_bytes):
-    # Initialize the grid
-    grid = [["." for _ in range(grid_size)] for _ in range(grid_size)]
+    # Initialize the grid using aoc utility
+    grid = create_grid(grid_size, ".")
 
     # Corrupt the grid based on the incoming bytes
     for i in range(min(total_bytes, len(byte_positions))):
         x, y = byte_positions[i]
-        if 0 <= x < grid_size and 0 <= y < grid_size:
-            grid[y][x] = "#"
+        coord = Coord(y, x)  # Convert (x,y) to (row, col)
+        if coord.in_bounds(matrix_max_bounds(grid)):
+            matrix_set(grid, coord, "#")
 
     return grid
 
 
 def find_shortest_path(grid):
     grid_size = len(grid)
-    start = (0, 0)
-    end = (grid_size - 1, grid_size - 1)
+    start = Coord(0, 0)
+    end = Coord(grid_size - 1, grid_size - 1)
+    max_bounds = matrix_max_bounds(grid)
 
-    # BFS setup
-    queue = deque([(start, 0)])  # (current_position, steps)
-    visited = set()
-    visited.add(start)
+    # Define neighbors function for BFS
+    def neighbors_func(coord):
+        return [
+            neighbor
+            for direction in Coord.DIRECTIONS_CARDINAL
+            if (neighbor := coord + direction).in_bounds(max_bounds)
+            and matrix_get(grid, neighbor) == "."
+        ]
 
-    while queue:
-        (x, y), steps = queue.popleft()
+    # Use aoc.bfs() to find distances
+    distances = bfs(start, neighbors_func)
 
-        # Check if we've reached the end
-        if (x, y) == end:
-            return steps
-
-        # Explore neighbors
-        for direction in Coord.DIRECTIONS_CARDINAL:
-            nx, ny = x + direction.col, y + direction.row
-
-            # Check bounds and valid movement
-            if (
-                0 <= nx < grid_size
-                and 0 <= ny < grid_size
-                and grid[ny][nx] == "."
-                and (nx, ny) not in visited
-            ):
-                visited.add((nx, ny))
-                queue.append(((nx, ny), steps + 1))
-
-    # If no path is found
-    return -1
+    # Return distance to end, or -1 if not found
+    return distances.get(end, -1)
 
 
 def find_blocking_byte(grid_size, byte_positions):
