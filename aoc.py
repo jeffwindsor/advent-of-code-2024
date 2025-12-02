@@ -109,7 +109,7 @@ Coord.TURN_COUNTER_CLOCKWISE = {
 
 # ========== Testing Utilities ==========
 
-TITLE_COLOR = "\033[100m"
+TITLE_COLOR = "\033[34m"
 FALSE_COLOR = "\033[91m"
 TRUE_COLOR = "\033[92m"
 END_COLOR = "\033[0m"
@@ -157,7 +157,7 @@ def run(func: Callable[[str], Any], test_cases: list[TestCase]) -> None:
     - Summary line showing total pass/fail count
     """
     filename = os.path.basename(inspect.stack()[1].filename)
-    print(f"{TITLE_COLOR}{filename}: {func.__name__}{END_COLOR}")
+    print(f"{TITLE_COLOR}{func.__name__}{END_COLOR}")
 
     passed = 0
     failed = 0
