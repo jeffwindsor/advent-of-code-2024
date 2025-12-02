@@ -209,6 +209,7 @@ def dfs(
 ) -> list[Coord] | None:
     """
     Generic depth-first search algorithm.
+    Optimized with parent tracking for O(n) time and memory complexity.
 
     Args:
         start: Starting coordinate
@@ -217,24 +218,36 @@ def dfs(
 
     Returns:
         List of coordinates forming path to goal, or None if no path found
+
+    Note:
+        Uses parent tracking and backtracking for efficient O(n) path construction,
+        avoiding the O(n²) cost of incrementally building paths during search.
     """
-    stack = [(start, [start])]
+    stack = [(start, None)]  # (current, parent)
+    parent_map = {}
     visited = set()
 
     while stack:
-        current, path = stack.pop()
+        current, parent = stack.pop()
 
         if current in visited:
             continue
 
         visited.add(current)
+        parent_map[current] = parent
 
         if goal_func(current):
-            return path
+            # Reconstruct path by backtracking from goal to start
+            path = []
+            node = current
+            while node is not None:
+                path.append(node)
+                node = parent_map[node]
+            return list(reversed(path))
 
         for neighbor in neighbors_func(current):
             if neighbor not in visited:
-                stack.append((neighbor, path + [neighbor]))
+                stack.append((neighbor, current))
 
     return None
 
@@ -246,8 +259,10 @@ def dfs_grid_path(
     walkable_values: set[Any],
 ) -> list[Coord]:
     """
-    Depth-first search to find a path through a grid maze.
-    Optimized with parent tracking for O(n) path reconstruction.
+    Convenience wrapper for depth-first search through a grid maze.
+
+    This is a specialized interface to the generic dfs() function,
+    optimized for grid-based pathfinding problems.
 
     Args:
         grid: 2D grid/matrix to search through
@@ -265,41 +280,28 @@ def dfs_grid_path(
         True
 
     Note:
-        Uses parent tracking and backtracking for efficient O(n) path construction,
-        avoiding the O(n²) cost of incrementally building paths during search.
+        This wrapper uses the generic dfs() implementation with parent tracking
+        for efficient O(n) time and memory complexity.
     """
-    stack = [(start, None)]  # (current_position, parent_position)
-    parent_map = {}
-    visited = set()
-
-    while stack:
-        current, parent = stack.pop()
-
-        if current in visited:
-            continue
-
-        visited.add(current)
-        parent_map[current] = parent
-
-        if current == end:
-            # Reconstruct path by backtracking from end to start
-            path = []
-            node = end
-            while node is not None:
-                path.append(node)
-                node = parent_map[node]
-            return list(reversed(path))
-
+    def neighbors_func(coord: Coord) -> list[Coord]:
+        """Get valid neighboring coordinates in the grid."""
+        neighbors = []
         for direction in Coord.DIRECTIONS_CARDINAL:
-            next_position = current + direction
+            next_position = coord + direction
             if (
                 matrix_contains_coord(grid, next_position)
-                and next_position not in visited
                 and matrix_get(grid, next_position) in walkable_values
             ):
-                stack.append((next_position, current))
+                neighbors.append(next_position)
+        return neighbors
 
-    return []  # Return empty list if no path is found
+    def goal_func(coord: Coord) -> bool:
+        """Check if we've reached the goal."""
+        return coord == end
+
+    # Use the generic dfs implementation
+    result = dfs(start, neighbors_func, goal_func)
+    return result if result is not None else []
 
 
 def dijkstra(
