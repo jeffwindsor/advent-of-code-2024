@@ -3,10 +3,10 @@ from aoc import (
     run,
     TestCase,
     Coord,
+    find_first,
+    dfs_grid_path,
     matrix_contains_coord,
     matrix_get,
-    find_first,
-    matrix_size,
 )
 
 WALL = "#"
@@ -19,38 +19,8 @@ def parse(data_file):
     return read_data_as_char_grid(data_file)
 
 
-def dfs(maze, start, end):
-    stack = [
-        (start, [])
-    ]  # Stack contains tuples of (current_position, path_to_position)
-    visited = set()
-
-    while stack:
-        current, path = stack.pop()
-
-        if current in visited:
-            continue
-
-        visited.add(current)
-        path = path + [current]  # Update the path to include the current position
-
-        if current == end:
-            return path  # Return the path when the end is reached
-
-        for direction in Coord.DIRECTIONS_CARDINAL:
-            next_position = current + direction
-            if (
-                matrix_contains_coord(maze, next_position)
-                and next_position not in visited
-                and matrix_get(maze, next_position) in (SPACE, END)
-            ):
-                stack.append((next_position, path))
-
-    return []  # Return an empty list if no path is found
-
-
 def analyze_maze(maze, start, end):
-    path = dfs(maze, start, end)
+    path = dfs_grid_path(maze, start, end, {SPACE, END})
     if not path:
         raise ValueError("No valid path between start and end in the original maze.")
     path_index_by_coord = {coord: i for i, coord in enumerate(path)}
@@ -86,8 +56,9 @@ def analyze_maze_with_longer_cheats(maze, start, end, max_cheat_duration):
     Find cheats that can last up to max_cheat_duration picoseconds.
     A cheat is defined by its start and end positions on the path.
     The cheat duration is the Manhattan distance between start and end.
+    Optimized to calculate distance directly and skip impossible cheats early.
     """
-    path = dfs(maze, start, end)
+    path = dfs_grid_path(maze, start, end, {SPACE, END})
     if not path:
         raise ValueError("No valid path between start and end in the original maze.")
 
@@ -100,14 +71,18 @@ def analyze_maze_with_longer_cheats(maze, start, end, max_cheat_duration):
         for drow in range(-max_cheat_duration, max_cheat_duration + 1):
             remaining = max_cheat_duration - abs(drow)
             for dcol in range(-remaining, remaining + 1):
+                # Calculate manhattan distance directly from drow/dcol
+                cheat_duration = abs(drow) + abs(dcol)
+
+                # Skip if no movement or exceeds max duration
+                if cheat_duration == 0 or cheat_duration > max_cheat_duration:
+                    continue
+
                 cheat_end = Coord(current_coord.row + drow, current_coord.col + dcol)
 
                 # Check if cheat end is on the path
                 if cheat_end in path_index_by_coord:
                     end_index = path_index_by_coord[cheat_end]
-
-                    # Calculate actual cheat duration (Manhattan distance)
-                    cheat_duration = current_coord.manhattan_distance(cheat_end)
 
                     # Calculate time saved: path distance - cheat duration
                     path_distance = end_index - current_index
@@ -115,9 +90,7 @@ def analyze_maze_with_longer_cheats(maze, start, end, max_cheat_duration):
 
                     # Only count if we actually save time (and move forward)
                     if time_saved > 0:
-                        if time_saved not in savings_count:
-                            savings_count[time_saved] = 0
-                        savings_count[time_saved] += 1
+                        savings_count[time_saved] = savings_count.get(time_saved, 0) + 1
 
     return savings_count
 

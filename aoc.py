@@ -239,6 +239,69 @@ def dfs(
     return None
 
 
+def dfs_grid_path(
+    grid: Grid,
+    start: Coord,
+    end: Coord,
+    walkable_values: set[Any],
+) -> list[Coord]:
+    """
+    Depth-first search to find a path through a grid maze.
+    Optimized with parent tracking for O(n) path reconstruction.
+
+    Args:
+        grid: 2D grid/matrix to search through
+        start: Starting coordinate
+        end: Goal coordinate
+        walkable_values: Set of grid values that can be traversed
+
+    Returns:
+        List of coordinates forming path from start to end, or empty list if no path found
+
+    Example:
+        >>> maze = [['#', '.', '#'], ['.', '.', '.'], ['#', '.', '#']]
+        >>> path = dfs_grid_path(maze, Coord(0,1), Coord(2,1), {'.'}  )
+        >>> len(path) > 0
+        True
+
+    Note:
+        Uses parent tracking and backtracking for efficient O(n) path construction,
+        avoiding the O(n²) cost of incrementally building paths during search.
+    """
+    stack = [(start, None)]  # (current_position, parent_position)
+    parent_map = {}
+    visited = set()
+
+    while stack:
+        current, parent = stack.pop()
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+        parent_map[current] = parent
+
+        if current == end:
+            # Reconstruct path by backtracking from end to start
+            path = []
+            node = end
+            while node is not None:
+                path.append(node)
+                node = parent_map[node]
+            return list(reversed(path))
+
+        for direction in Coord.DIRECTIONS_CARDINAL:
+            next_position = current + direction
+            if (
+                matrix_contains_coord(grid, next_position)
+                and next_position not in visited
+                and matrix_get(grid, next_position) in walkable_values
+            ):
+                stack.append((next_position, current))
+
+    return []  # Return empty list if no path is found
+
+
 def dijkstra(
     start: Coord,
     neighbors_func: Callable[[Coord], list[tuple[Coord, int]]],
@@ -482,6 +545,7 @@ __all__ = [
     # Graph algorithms
     "bfs",
     "dfs",
+    "dfs_grid_path",
     "dijkstra",
     # Number/Math utilities
     "count_digits",
