@@ -1,11 +1,10 @@
-from aoc import read_data, run, TestCase
+from aoc import read_data_as_sections, run, TestCase
 
 
 def parse_input(data_file):
-    input = read_data(data_file)
-    ps, ds = input.strip().split("\n\n")
-    patterns = [p.strip() for p in ps.split(",")]
-    designs = [d.strip() for d in ds.splitlines()]
+    sections = read_data_as_sections(data_file)
+    patterns = [p.strip() for p in sections[0].split(",")]
+    designs = sections[1].splitlines()
     return patterns, designs
 
 

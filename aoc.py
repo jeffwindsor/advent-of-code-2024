@@ -694,6 +694,27 @@ def read_data_as_lines(data_file: str, strip_whitespace: bool = True) -> list[st
     )
 
 
+def read_data_as_ints(data_file: str) -> list[int]:
+    """
+    Read puzzle input file and return as list of integers (one per line).
+
+    Args:
+        data_file: Path to input file
+
+    Returns:
+        List of integers parsed from each line
+
+    Example:
+        Input file:
+            123
+            456
+            789
+        Returns: [123, 456, 789]
+    """
+    lines = read_data_as_lines(data_file)
+    return [int(line) for line in lines]
+
+
 def read_data_as_char_grid(data_file: str) -> Grid:
     """
     Read puzzle input file and return as 2D character grid.
@@ -721,9 +742,9 @@ def read_data_as_int_grid(data_file: str, empty_value: int = -1) -> Grid:
     ]
 
 
-def parse_coord_pairs(data_file: str, separator: str = ",") -> list[tuple[int, int]]:
+def read_data_as_coord_pairs(data_file: str, separator: str = ",") -> list[tuple[int, int]]:
     """
-    Parse lines of coordinate pairs into list of tuples.
+    Read file and parse lines of coordinate pairs into list of tuples.
 
     Args:
         data_file: Path to input file
@@ -741,13 +762,13 @@ def parse_coord_pairs(data_file: str, separator: str = ",") -> list[tuple[int, i
     ]
 
 
-def parse_graph_edges(
+def read_data_as_graph_edges(
     data_file: str,
     separator: str = "-",
     directed: bool = False
 ) -> dict[str, set[str]]:
     """
-    Parse edge list into adjacency graph representation.
+    Read file with edge list and return adjacency graph representation.
 
     Args:
         data_file: Path to input file with edges (e.g., "a-b")
@@ -775,6 +796,76 @@ def parse_graph_edges(
             graph[node2].add(node1)
 
     return graph
+
+
+def read_data_as_sections(data_file: str, strip: bool = True) -> list[str]:
+    """
+    Read file and split by blank lines into sections.
+
+    Args:
+        data_file: Path to input file
+        strip: Whether to strip whitespace from sections (default: True)
+
+    Returns:
+        List of section strings (split by blank lines)
+
+    Example:
+        Input file:
+            section 1 line 1
+            section 1 line 2
+
+            section 2 line 1
+        Returns: ['section 1 line 1\\nsection 1 line 2', 'section 2 line 1']
+    """
+    content = read_data(data_file)
+    sections = content.split("\n\n")
+    return [section.strip() for section in sections] if strip else sections
+
+
+def extract_ints(text: str) -> list[int]:
+    """
+    Extract all integers (including negative) from text using regex.
+
+    Args:
+        text: String to extract integers from
+
+    Returns:
+        List of integers found in the text
+
+    Example:
+        >>> extract_ints("p=3,4 v=-2,5")
+        [3, 4, -2, 5]
+    """
+    from re import findall
+    return list(map(int, findall(r"-?\d+", text)))
+
+
+def read_data_as_columns(
+    data_file: str,
+    separator: str | None = None,
+    converter: type = int
+) -> list[list]:
+    """
+    Read file with whitespace/delimiter-separated columns and transpose.
+
+    Args:
+        data_file: Path to input file
+        separator: Column separator (None = whitespace, default)
+        converter: Type to convert values to (default: int)
+
+    Returns:
+        List of columns (transposed from rows)
+
+    Example:
+        Input file:
+            1  4
+            2  5
+            3  6
+        Returns: [[1, 2, 3], [4, 5, 6]]
+    """
+    lines = read_data_as_lines(data_file)
+    rows = [list(map(converter, line.split(separator))) for line in lines]
+    return list(zip(*rows))  # Transpose
 
 
 # ========== Exports ==========
@@ -813,10 +904,14 @@ __all__ = [
     # Data reading
     "read_data",
     "read_data_as_lines",
+    "read_data_as_ints",
     "read_data_as_char_grid",
     "read_data_as_int_grid",
-    "parse_coord_pairs",
-    "parse_graph_edges",
+    "read_data_as_coord_pairs",
+    "read_data_as_graph_edges",
+    "read_data_as_sections",
+    "read_data_as_columns",
+    "extract_ints",
 ]
 
 

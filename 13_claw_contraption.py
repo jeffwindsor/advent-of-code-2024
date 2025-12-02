@@ -1,20 +1,15 @@
 import numpy as np
 from math import isclose
-from aoc import read_data, run, TestCase
-from re import findall
-
-
-def as_integers(xs):
-    return list(map(int, xs))
+from aoc import read_data, extract_ints, run, TestCase
 
 
 def split_list(xs, n):
-    return [as_integers(xs[i : i + n]) for i in range(0, len(xs), n)]
+    return [xs[i : i + n] for i in range(0, len(xs), n)]
 
 
 def parse(data_file):
     text = read_data(data_file)
-    return split_list(findall(r"[XY][+=](\d+)", text), 6)
+    return split_list(extract_ints(text), 6)
 
 
 tol = 0.00000000000001

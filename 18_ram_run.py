@@ -1,5 +1,5 @@
 from aoc import (
-    parse_coord_pairs,
+    read_data_as_coord_pairs,
     run,
     TestCase,
     Coord,
@@ -12,7 +12,7 @@ from aoc import (
 
 
 def parse_input(data_file):
-    return parse_coord_pairs(data_file)
+    return read_data_as_coord_pairs(data_file)
 
 
 def simulate_memory_space(grid_size, byte_positions, total_bytes):
