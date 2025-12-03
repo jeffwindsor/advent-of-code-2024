@@ -4,9 +4,9 @@ from aoc import (
     TestCase,
     Coord,
     create_visited_grid,
-    matrix_size,
-    matrix_max_bounds,
-    matrix_get,
+    grid_size,
+    grid_max_bounds,
+    grid_get,
     count_continuous_segments,
 )
 from collections import deque
@@ -28,7 +28,7 @@ def is_valid_and_same_plant(
     coord: Coord, plant: str, grid: list[list[str]]
 ) -> bool:
     """Check if cell is valid and contains the same plant type."""
-    return coord.in_bounds(matrix_max_bounds(grid)) and matrix_get(grid, coord) == plant
+    return coord.in_bounds(grid_max_bounds(grid)) and grid_get(grid, coord) == plant
 
 
 def flood_fill_region(
@@ -124,7 +124,7 @@ def calculate_area_and_perimeter(grid: list[list[str]]) -> list[Region]:
     A region is a connected group of cells with the same plant type.
     Perimeter counts edges that border different plants or the grid boundary.
     """
-    size = matrix_size(grid)
+    size = grid_size(grid)
     visited = create_visited_grid(size)
     results = []
 
@@ -132,7 +132,7 @@ def calculate_area_and_perimeter(grid: list[list[str]]) -> list[Region]:
         for c in range(size.col):
             if not visited[r][c]:
                 coord = Coord(r, c)
-                plant = matrix_get(grid, coord)
+                plant = grid_get(grid, coord)
                 area, perimeter = flood_fill_region(coord, plant, grid, visited)
                 results.append(Region(plant, area, perimeter))
 
@@ -153,7 +153,7 @@ def find_region_cells(
     """Find all cells in the same region using BFS."""
     queue = deque([start])
     region_cells = []
-    plant = matrix_get(grid, start)
+    plant = grid_get(grid, start)
     visited[start.row][start.col] = True
 
     while queue:
@@ -176,7 +176,7 @@ def count_perimeter_sides(cells: list[Coord], grid: list[list[str]]) -> int:
     """Count perimeter sides for a region."""
     sides = 0
     for coord in cells:
-        plant = matrix_get(grid, coord)
+        plant = grid_get(grid, coord)
         for direction in Coord.DIRECTIONS_CARDINAL:
             neighbor = coord + direction
             if not is_valid_and_same_plant(neighbor, plant, grid):
@@ -186,7 +186,7 @@ def count_perimeter_sides(cells: list[Coord], grid: list[list[str]]) -> int:
 
 def calculate_area_and_sides(grid: list[list[str]]) -> list[tuple[str, int, int]]:
     """Calculate area and sides for each region using flood fill with direction tracking."""
-    size = matrix_size(grid)
+    size = grid_size(grid)
     visited = create_visited_grid(size)
 
     def flood_fill(start: Coord, plant: str) -> tuple[int, int]:
@@ -225,7 +225,7 @@ def calculate_area_and_sides(grid: list[list[str]]) -> list[tuple[str, int, int]
         for c in range(size.col):
             if not visited[r][c]:
                 coord = Coord(r, c)
-                plant = matrix_get(grid, coord)
+                plant = grid_get(grid, coord)
                 area, sides = flood_fill(coord, plant)
                 results.append((plant, area, sides))
     return results
@@ -233,7 +233,7 @@ def calculate_area_and_sides(grid: list[list[str]]) -> list[tuple[str, int, int]
 
 def calculate_total_price(grid: list[list[str]]) -> int:
     """Calculate total price for all regions (area * perimeter)."""
-    size = matrix_size(grid)
+    size = grid_size(grid)
     visited = create_visited_grid(size)
     total_price = 0
 

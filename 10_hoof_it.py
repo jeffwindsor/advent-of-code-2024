@@ -3,10 +3,10 @@ from aoc import (
     run,
     TestCase,
     Coord,
-    matrix_get,
+    grid_get,
     find_all,
-    matrix_max_bounds,
-    matrix_contains_coord,
+    grid_max_bounds,
+    grid_contains_coord,
 )
 from collections import deque
 
@@ -38,7 +38,7 @@ def find_paths_rec(
     paths = set()
     for direction in directions:
         next = start + direction
-        if matrix_contains_coord(matrix, next) and is_valid_step(matrix, start, next):
+        if grid_contains_coord(matrix, next) and is_valid_step(matrix, start, next):
             paths |= find_paths_rec(
                 matrix,
                 next,
@@ -62,7 +62,7 @@ def bfs(matrix, start, directions, can_visit):
     :param directions: list of coordinate offsets for each possible direction
     :return: List of visited positions in BFS order
     """
-    hb = matrix_max_bounds(matrix)
+    hb = grid_max_bounds(matrix)
     queue = deque([start])
     visited = set([start])
     order = []
@@ -94,9 +94,9 @@ def find_reachable_nines(topographic_map, start_coord):
         topographic_map,
         start_coord,
         Coord.DIRECTIONS_CARDINAL,
-        lambda p, n: matrix_get(topographic_map, p) + 1 == matrix_get(topographic_map, n),
+        lambda p, n: grid_get(topographic_map, p) + 1 == grid_get(topographic_map, n),
     )
-    nines = [coord for coord in set(paths) if matrix_get(topographic_map, coord) == 9]
+    nines = [coord for coord in set(paths) if grid_get(topographic_map, coord) == 9]
     return len(nines)
 
 
@@ -105,11 +105,11 @@ def find_trailheads(topographic_map):
 
 
 def is_valid_step(grid, current_coord, next_coord):
-    return matrix_get(grid, next_coord) == matrix_get(grid, current_coord) + 1
+    return grid_get(grid, next_coord) == grid_get(grid, current_coord) + 1
 
 
 def is_end_of_path(grid, coord):
-    return matrix_get(grid, coord) == 9
+    return grid_get(grid, coord) == 9
 
 
 def find_path_count(matrix, start):

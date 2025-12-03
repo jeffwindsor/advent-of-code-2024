@@ -4,9 +4,9 @@ from aoc import (
     TestCase,
     Coord,
     create_grid,
-    matrix_set,
-    matrix_get,
-    matrix_max_bounds,
+    grid_set,
+    grid_get,
+    grid_max_bounds,
     bfs,
 )
 
@@ -23,8 +23,8 @@ def simulate_memory_space(grid_size, byte_positions, total_bytes):
     for i in range(min(total_bytes, len(byte_positions))):
         x, y = byte_positions[i]
         coord = Coord(y, x)  # Convert (x,y) to (row, col)
-        if coord.in_bounds(matrix_max_bounds(grid)):
-            matrix_set(grid, coord, "#")
+        if coord.in_bounds(grid_max_bounds(grid)):
+            grid_set(grid, coord, "#")
 
     return grid
 
@@ -33,7 +33,7 @@ def find_shortest_path(grid):
     grid_size = len(grid)
     start = Coord(0, 0)
     end = Coord(grid_size - 1, grid_size - 1)
-    max_bounds = matrix_max_bounds(grid)
+    max_bounds = grid_max_bounds(grid)
 
     # Define neighbors function for BFS
     def neighbors_func(coord):
@@ -41,7 +41,7 @@ def find_shortest_path(grid):
             neighbor
             for direction in Coord.DIRECTIONS_CARDINAL
             if (neighbor := coord + direction).in_bounds(max_bounds)
-            and matrix_get(grid, neighbor) == "."
+            and grid_get(grid, neighbor) == "."
         ]
 
     # Use aoc.bfs() to find distances

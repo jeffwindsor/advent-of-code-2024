@@ -3,8 +3,8 @@ from aoc import (
     run,
     TestCase,
     find_first,
-    matrix_max_bounds,
-    matrix_get,
+    grid_max_bounds,
+    grid_get,
     Coord,
     dijkstra,
 )
@@ -20,7 +20,7 @@ def parse(data_file):
 
 
 def find_lowest_score(matrix, start, end):
-    max_bounds = matrix_max_bounds(matrix)
+    max_bounds = grid_max_bounds(matrix)
     direction_cost = 1000
     forward_cost = 1
 
@@ -32,7 +32,7 @@ def find_lowest_score(matrix, start, end):
         # Try moving forward
         dc = Coord.DIRECTIONS_CARDINAL[direction]
         nc = coord + dc
-        if nc.in_bounds(max_bounds) and matrix_get(matrix, nc) != "#":
+        if nc.in_bounds(max_bounds) and grid_get(matrix, nc) != "#":
             neighbors.append(((nc, direction), forward_cost))
 
         # Try rotating left and right
@@ -55,7 +55,7 @@ def find_lowest_score(matrix, start, end):
 
 def find_all_best_path_tiles(matrix, start, end):
     """Find all tiles that are part of at least one best path."""
-    max_bounds = matrix_max_bounds(matrix)
+    max_bounds = grid_max_bounds(matrix)
     direction_cost = 1000
     forward_cost = 1
 
@@ -67,7 +67,7 @@ def find_all_best_path_tiles(matrix, start, end):
         # Try moving forward
         dc = Coord.DIRECTIONS_CARDINAL[direction]
         nc = coord + dc
-        if nc.in_bounds(max_bounds) and matrix_get(matrix, nc) != "#":
+        if nc.in_bounds(max_bounds) and grid_get(matrix, nc) != "#":
             neighbors.append(((nc, direction), forward_cost))
 
         # Try rotating left and right
@@ -105,7 +105,7 @@ def find_all_best_path_tiles(matrix, start, end):
         dc = Coord.DIRECTIONS_CARDINAL[direction]
         prev_coord = coord - dc
 
-        if prev_coord.in_bounds(max_bounds) and matrix_get(matrix, prev_coord) != "#":
+        if prev_coord.in_bounds(max_bounds) and grid_get(matrix, prev_coord) != "#":
             prev_state = (prev_coord, direction)
             expected_score = current_score - forward_cost
             if prev_state in best_scores and best_scores[prev_state] == expected_score:

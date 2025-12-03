@@ -1,0 +1,271 @@
+"""Graph algorithms (BFS, DFS, Dijkstra, max clique)."""
+
+from typing import Any, Callable
+from collections import deque
+from heapq import heappush, heappop
+from .coord import Coord
+from .grid import Grid, grid_contains_coord, grid_get
+
+
+def bfs(
+    start: Any,
+    neighbors_func: Callable[[Any], list[Any]],
+    goal_func: Callable[[Any], bool] | None = None,
+) -> dict[Any, int] | list[Any]:
+    """
+    Generic breadth-first search algorithm.
+
+    Args:
+        start: Starting state (Coord, tuple, or any hashable type)
+        neighbors_func: Function that returns valid neighbors for a state
+        goal_func: Optional function to check if goal is reached
+
+    Returns:
+        If goal_func is None: dict mapping states to distances from start
+        If goal_func provided: list of states forming path to goal, or empty list if no path
+
+    Examples:
+        # Find all distances
+        >>> distances = bfs(start_coord, neighbors_func)
+
+        # Find path to goal
+        >>> path = bfs(start_coord, neighbors_func, lambda c: c == goal)
+    """
+    queue = deque([start])
+    visited = {start}
+    distances = {start: 0}
+    parents = {start: None}
+
+    while queue:
+        current = queue.popleft()
+
+        if goal_func and goal_func(current):
+            # Reconstruct path
+            path = []
+            node = current
+            while node is not None:
+                path.append(node)
+                node = parents[node]
+            return list(reversed(path))
+
+        for neighbor in neighbors_func(current):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                distances[neighbor] = distances[current] + 1
+                parents[neighbor] = current
+                queue.append(neighbor)
+
+    return distances if not goal_func else []
+
+
+def dfs(
+    start: Coord,
+    neighbors_func: Callable[[Coord], list[Coord]],
+    goal_func: Callable[[Coord], bool],
+) -> list[Coord] | None:
+    """
+    Generic depth-first search algorithm.
+    Optimized with parent tracking for O(n) time and memory complexity.
+
+    Args:
+        start: Starting coordinate
+        neighbors_func: Function that returns valid neighbors for a coordinate
+        goal_func: Function to check if goal is reached
+
+    Returns:
+        List of coordinates forming path to goal, or None if no path found
+
+    Note:
+        Uses parent tracking and backtracking for efficient O(n) path construction,
+        avoiding the O(n²) cost of incrementally building paths during search.
+    """
+    stack = [(start, None)]  # (current, parent)
+    parent_map = {}
+    visited = set()
+
+    while stack:
+        current, parent = stack.pop()
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+        parent_map[current] = parent
+
+        if goal_func(current):
+            # Reconstruct path by backtracking from goal to start
+            path = []
+            node = current
+            while node is not None:
+                path.append(node)
+                node = parent_map[node]
+            return list(reversed(path))
+
+        for neighbor in neighbors_func(current):
+            if neighbor not in visited:
+                stack.append((neighbor, current))
+
+    return None
+
+
+def dfs_grid_path(
+    grid: Grid,
+    start: Coord,
+    end: Coord,
+    walkable_values: set[Any],
+) -> list[Coord]:
+    """
+    Convenience wrapper for depth-first search through a grid maze.
+
+    This is a specialized interface to the generic dfs() function,
+    optimized for grid-based pathfinding problems.
+
+    Args:
+        grid: 2D grid/matrix to search through
+        start: Starting coordinate
+        end: Goal coordinate
+        walkable_values: Set of grid values that can be traversed
+
+    Returns:
+        List of coordinates forming path from start to end, or empty list if no path found
+
+    Example:
+        >>> maze = [['#', '.', '#'], ['.', '.', '.'], ['#', '.', '#']]
+        >>> path = dfs_grid_path(maze, Coord(0,1), Coord(2,1), {'.'}  )
+        >>> len(path) > 0
+        True
+
+    Note:
+        This wrapper uses the generic dfs() implementation with parent tracking
+        for efficient O(n) time and memory complexity.
+    """
+    def neighbors_func(coord: Coord) -> list[Coord]:
+        """Get valid neighboring coordinates in the grid."""
+        neighbors = []
+        for direction in Coord.DIRECTIONS_CARDINAL:
+            next_position = coord + direction
+            if (
+                grid_contains_coord(grid, next_position)
+                and grid_get(grid, next_position) in walkable_values
+            ):
+                neighbors.append(next_position)
+        return neighbors
+
+    def goal_func(coord: Coord) -> bool:
+        """Check if we've reached the goal."""
+        return coord == end
+
+    # Use the generic dfs implementation
+    result = dfs(start, neighbors_func, goal_func)
+    return result if result is not None else []
+
+
+def dijkstra(
+    start: Any,
+    neighbors_func: Callable[[Any], list[tuple[Any, int]]],
+    goal: Any | None = None,
+) -> dict[Any, int]:
+    """
+    Dijkstra's shortest path algorithm (generalized for any hashable state).
+
+    Args:
+        start: Starting state (can be Coord, tuple, or any hashable type)
+        neighbors_func: Function returning list of (neighbor_state, cost) tuples
+        goal: Optional goal state (returns early if found)
+
+    Returns:
+        Dictionary mapping states to shortest distances from start
+
+    Examples:
+        # Original usage with Coord
+        >>> distances = dijkstra(Coord(0,0), neighbors_func)
+
+        # New usage with state tuples (coord, direction)
+        >>> distances = dijkstra((Coord(0,0), 0), state_neighbors_func)
+    """
+    counter = 0
+    pq = [(0, counter, start)]
+    distances = {start: 0}
+    visited = set()
+
+    while pq:
+        dist, _, current = heappop(pq)
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        if goal and current == goal:
+            return distances
+
+        for neighbor, cost in neighbors_func(current):
+            new_dist = dist + cost
+            if neighbor not in distances or new_dist < distances[neighbor]:
+                distances[neighbor] = new_dist
+                counter += 1
+                heappush(pq, (new_dist, counter, neighbor))
+
+    return distances
+
+
+def find_max_clique(graph: dict[Any, set[Any]]) -> set[Any]:
+    """
+    Find the largest clique (fully-connected subgraph) using Bron-Kerbosch algorithm.
+
+    A clique is a subset of nodes where every node is connected to every other node.
+    This uses the Bron-Kerbosch algorithm to efficiently enumerate all maximal cliques.
+
+    Args:
+        graph: Adjacency graph (dict mapping nodes to sets of neighbors)
+
+    Returns:
+        Set of nodes forming the largest clique
+
+    Example:
+        >>> graph = {'a': {'b', 'c'}, 'b': {'a', 'c'}, 'c': {'a', 'b'}}
+        >>> find_max_clique(graph)
+        {'a', 'b', 'c'}  # All three nodes form a complete triangle
+    """
+    def bron_kerbosch(R: set, P: set, X: set, cliques: list):
+        """
+        Bron-Kerbosch algorithm to find all maximal cliques.
+
+        Args:
+            R: Current clique being built
+            P: Candidate vertices that could extend R
+            X: Vertices already processed
+            cliques: List to collect all maximal cliques
+        """
+        if not P and not X:
+            # Found a maximal clique
+            cliques.append(R.copy())
+            return
+
+        # Iterate over a copy of P since we modify it
+        for v in list(P):
+            neighbors = graph.get(v, set())
+            bron_kerbosch(
+                R | {v},           # Add v to current clique
+                P & neighbors,     # Candidates must be neighbors of v
+                X & neighbors,     # Processed must be neighbors of v
+                cliques
+            )
+            P.remove(v)           # Remove v from candidates
+            X.add(v)              # Add v to processed
+
+    cliques = []
+    vertices = set(graph.keys())
+    bron_kerbosch(set(), vertices, set(), cliques)
+
+    # Return the largest clique found
+    return max(cliques, key=len) if cliques else set()
+
+
+__all__ = [
+    "bfs",
+    "dfs",
+    "dfs_grid_path",
+    "dijkstra",
+    "find_max_clique",
+]
