@@ -1,5 +1,11 @@
 from aoc import read_data_as_sections, run, TestCase
 
+# Gate operation constants
+OP_AND = "AND"
+OP_OR = "OR"
+OP_XOR = "XOR"
+
+
 def parse_data(data_file):
     """Parse initial wire values and gate connections."""
     sections = read_data_as_sections(data_file)
@@ -37,11 +43,11 @@ def simulate_gates(wire_values, gates):
                 val2 = wire_values[input2]
 
                 # Compute output based on operation
-                if operation == 'AND':
+                if operation == OP_AND:
                     result = val1 & val2
-                elif operation == 'OR':
+                elif operation == OP_OR:
                     result = val1 | val2
-                elif operation == 'XOR':
+                elif operation == OP_XOR:
                     result = val1 ^ val2
 
                 wire_values[output] = result
@@ -116,13 +122,13 @@ def find_swapped_wires(data_file):
         z_wire = f"z{i:02d}"
         if z_wire in wire_to_gate:
             _, op, _ = wire_to_gate[z_wire]
-            if op != 'XOR':
+            if op != OP_XOR:
                 wrong_wires.add(z_wire)
 
     # Rule 2: XOR gates not involving x,y inputs must output to z
     for gate in gates:
         in1, op, in2, out = gate
-        if op == 'XOR':
+        if op == OP_XOR:
             # Check if this XOR takes x,y inputs
             if not ((in1.startswith('x') and in2.startswith('y')) or
                    (in1.startswith('y') and in2.startswith('x'))):
@@ -133,7 +139,7 @@ def find_swapped_wires(data_file):
     # Rule 3: XOR gates with x,y inputs (except x00,y00) must feed into another XOR
     for gate in gates:
         in1, op, in2, out = gate
-        if op == 'XOR':
+        if op == OP_XOR:
             if ((in1.startswith('x') and in2.startswith('y')) or
                 (in1.startswith('y') and in2.startswith('x'))):
                 # Skip x00, y00 which goes directly to z00
@@ -143,7 +149,7 @@ def find_swapped_wires(data_file):
                 feeds_xor = False
                 for other_gate in gates:
                     o_in1, o_op, o_in2, o_out = other_gate
-                    if o_op == 'XOR' and (o_in1 == out or o_in2 == out):
+                    if o_op == OP_XOR and (o_in1 == out or o_in2 == out):
                         feeds_xor = True
                         break
                 if not feeds_xor:
@@ -152,7 +158,7 @@ def find_swapped_wires(data_file):
     # Rule 4: AND gates (except x00 AND y00) must feed into OR gates
     for gate in gates:
         in1, op, in2, out = gate
-        if op == 'AND':
+        if op == OP_AND:
             # Skip x00 AND y00 which is the initial carry
             if (in1 in ['x00', 'y00'] and in2 in ['x00', 'y00']):
                 continue
@@ -160,7 +166,7 @@ def find_swapped_wires(data_file):
             feeds_or = False
             for other_gate in gates:
                 o_in1, o_op, o_in2, o_out = other_gate
-                if o_op == 'OR' and (o_in1 == out or o_in2 == out):
+                if o_op == OP_OR and (o_in1 == out or o_in2 == out):
                     feeds_or = True
                     break
             if not feeds_or:
