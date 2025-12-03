@@ -4,7 +4,7 @@ from aoc import (
     run,
     TestCase,
     Coord,
-    matrix_max_bounds,
+    grid_max_bounds,
     filter_coords_in_bounds,
     group_by_value,
 )
@@ -12,7 +12,7 @@ from aoc import (
 
 def parse(data_file):
     lines = read_data_as_lines(data_file)
-    return matrix_max_bounds(lines), group_by_value(lines, exclude=".")
+    return grid_max_bounds(lines), group_by_value(lines, exclude=".")
 
 
 def extend_in_direction(coord, diff, forward, bounds):

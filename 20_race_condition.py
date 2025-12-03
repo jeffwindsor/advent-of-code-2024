@@ -5,8 +5,8 @@ from aoc import (
     Coord,
     find_first,
     dfs_grid_path,
-    matrix_contains_coord,
-    matrix_get,
+    grid_contains_coord,
+    grid_get,
 )
 
 WALL = "#"
@@ -30,14 +30,14 @@ def analyze_maze(maze, start, end):
         for direction in Coord.DIRECTIONS_CARDINAL:
             check_for_wall = current_coord + direction
             if (
-                matrix_contains_coord(maze, check_for_wall)
-                and matrix_get(maze, check_for_wall) == WALL
+                grid_contains_coord(maze, check_for_wall)
+                and grid_get(maze, check_for_wall) == WALL
             ):
                 # then one more in same direction for non wall
                 check_for_space = check_for_wall + direction
                 if (
-                    matrix_contains_coord(maze, check_for_space)
-                    and matrix_get(maze, check_for_space) != WALL
+                    grid_contains_coord(maze, check_for_space)
+                    and grid_get(maze, check_for_space) != WALL
                 ):
                     space_index = path_index_by_coord[check_for_space]
                     savings_index = space_index - current_index
