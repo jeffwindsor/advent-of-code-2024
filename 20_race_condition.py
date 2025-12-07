@@ -1,13 +1,4 @@
-from aoc import (
-    read_data_as_char_grid,
-    run,
-    TestCase,
-    Coord,
-    find_first,
-    dfs_grid_path,
-    grid_contains_coord,
-    grid_get,
-)
+from aoc import Input, run, TestCase, Coord, Grid, dfs_grid_path
 
 WALL = "#"
 SPACE = "."
@@ -16,7 +7,7 @@ END = "E"
 
 
 def parse(data_file):
-    return read_data_as_char_grid(data_file)
+    return Input(data_file).as_grid()
 
 
 def analyze_maze(maze, start, end):
@@ -29,16 +20,10 @@ def analyze_maze(maze, start, end):
         # look in cardinal directions for walls
         for direction in Coord.DIRECTIONS_CARDINAL:
             check_for_wall = current_coord + direction
-            if (
-                grid_contains_coord(maze, check_for_wall)
-                and grid_get(maze, check_for_wall) == WALL
-            ):
+            if check_for_wall in maze and maze[check_for_wall] == WALL:
                 # then one more in same direction for non wall
                 check_for_space = check_for_wall + direction
-                if (
-                    grid_contains_coord(maze, check_for_space)
-                    and grid_get(maze, check_for_space) != WALL
-                ):
+                if check_for_space in maze and maze[check_for_space] != WALL:
                     space_index = path_index_by_coord[check_for_space]
                     savings_index = space_index - current_index
                     if savings_index > 0:
@@ -78,7 +63,7 @@ def analyze_maze_with_longer_cheats(maze, start, end, max_cheat_duration):
                 if cheat_duration == 0 or cheat_duration > max_cheat_duration:
                     continue
 
-                cheat_end = Coord(current_coord.row + drow, current_coord.col + dcol)
+                cheat_end = Coord.from_rc(current_coord.row + drow, current_coord.col + dcol)
 
                 # Check if cheat end is on the path
                 if cheat_end in path_index_by_coord:
@@ -97,7 +82,7 @@ def analyze_maze_with_longer_cheats(maze, start, end, max_cheat_duration):
 
 def part1(file):
     maze = parse(file)
-    start, end = find_first(maze, START), find_first(maze, END)
+    start, end = maze.find_first(START), maze.find_first(END)
     savings_count = analyze_maze(maze, start, end)
 
     # print("  Savings breakdown:")
@@ -109,7 +94,7 @@ def part1(file):
 
 def part2(file):
     maze = parse(file)
-    start, end = find_first(maze, START), find_first(maze, END)
+    start, end = maze.find_first(START), maze.find_first(END)
     savings_count = analyze_maze_with_longer_cheats(maze, start, end, 20)
 
     # print("  Savings breakdown (20ps cheats):")
@@ -122,11 +107,11 @@ def part2(file):
 
 if __name__ == "__main__":
     run(part1, [
-        TestCase("20_example", 0),
-        TestCase("20_puzzle_input", 1321),
+        TestCase("data/20_example", 0),
+        TestCase("data/20_puzzle_input", 1321),
     ])
 
     run(part2, [
-        TestCase("20_example", 0),  # 0 cheats save >= 100ps in example
-        TestCase("20_puzzle_input", 971737),
+        TestCase("data/20_example", 0),  # 0 cheats save >= 100ps in example
+        TestCase("data/20_puzzle_input", 971737),
     ])

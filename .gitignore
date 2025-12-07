@@ -1,3 +1,2 @@
 __pycache__/
-.serena/
-scratch_pad
+data/*puzzle_input*

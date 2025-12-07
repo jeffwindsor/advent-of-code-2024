@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-docker run -it --rm \
-  -v $HOME/Source/github.com/jeffwindsor/advent-of-code-2024:/app \
-  -w /app \
-  python:latest bash -c "pip install numpy && bash"

@@ -1,4 +1,4 @@
-from aoc import read_data_as_ints, run, TestCase
+from aoc import Input, run, TestCase
 from collections import defaultdict
 
 
@@ -46,7 +46,7 @@ def generate_nth_secret(initial, n):
 
 def sum_final_secrets(data_file):
     """Sum the final evolved secret numbers for all buyers."""
-    initial_secrets = read_data_as_ints(data_file)
+    initial_secrets = [int(line) for line in Input(data_file).as_lines()]
 
     return sum(generate_nth_secret(secret, ITERATIONS) for secret in initial_secrets)
 
@@ -89,8 +89,7 @@ def maximize_banana_profit(data_file):
     Each buyer sells once at the first occurrence of the chosen sequence.
     We need to find which sequence yields the maximum total across all buyers.
     """
-    initial_secrets = read_data_as_ints(data_file)
-
+    initial_secrets = [int(line) for line in Input(data_file).as_lines()]
     sequence_totals = defaultdict(int)
 
     for secret in initial_secrets:
@@ -107,15 +106,15 @@ if __name__ == "__main__":
     run(
         sum_final_secrets,
         [
-            TestCase("22_example_01", 37327623),
-            TestCase("22_puzzle_input", 17262627539),
+            TestCase("./data/22_example_01", 37327623),
+            TestCase("./data/22_puzzle_input", 17262627539),
         ],
     )
 
     run(
         maximize_banana_profit,
         [
-            TestCase("22_example_02", 23),
-            TestCase("22_puzzle_input", 1986),
+            TestCase("./data/22_example_02", 23),
+            TestCase("./data/22_puzzle_input", 1986),
         ],
     )

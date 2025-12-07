@@ -1,14 +1,4 @@
-from aoc import (
-    read_data_as_char_grid,
-    run,
-    TestCase,
-    Coord,
-    create_visited_grid,
-    grid_size,
-    grid_max_bounds,
-    grid_get,
-    count_continuous_segments,
-)
+from aoc import Input, run, TestCase, Coord, Grid, count_continuous_segments
 from collections import deque
 from dataclasses import dataclass
 
@@ -20,22 +10,20 @@ class Region:
     perimeter: int
 
 
-def parse(data_file: str) -> list[list[str]]:
-    return read_data_as_char_grid(data_file)
+def parse(data_file: str) -> Grid:
+    return Input(data_file).as_grid()
 
 
-def is_valid_and_same_plant(
-    coord: Coord, plant: str, grid: list[list[str]]
-) -> bool:
+def is_valid_and_same_plant(coord: Coord, plant: str, grid: Grid) -> bool:
     """Check if cell is valid and contains the same plant type."""
-    return coord.in_bounds(grid_max_bounds(grid)) and grid_get(grid, coord) == plant
+    return coord in grid and grid[coord] == plant
 
 
 def flood_fill_region(
     start: Coord,
     plant: str,
-    grid: list[list[str]],
-    visited: list[list[bool]],
+    grid: Grid,
+    visited: Grid,
 ) -> tuple[int, int]:
     """
     Use flood fill (DFS) to find all cells in a region and calculate area/perimeter.
@@ -50,7 +38,7 @@ def flood_fill_region(
         Tuple of (area, perimeter)
     """
     stack = [start]
-    visited[start.row][start.col] = True
+    visited[start] = True
     area, perimeter = 0, 0
 
     while stack:
@@ -61,9 +49,9 @@ def flood_fill_region(
             neighbor = current + direction
 
             if is_valid_and_same_plant(neighbor, plant, grid):
-                if not visited[neighbor.row][neighbor.col]:
+                if not visited[neighbor]:
                     stack.append(neighbor)
-                    visited[neighbor.row][neighbor.col] = True
+                    visited[neighbor] = True
             else:
                 # Either out of bounds or different plant - counts as perimeter
                 perimeter += 1
@@ -117,22 +105,21 @@ def count_sides_from_boundaries(boundaries: set[tuple[tuple[int, int], str]]) ->
     return total_sides
 
 
-def calculate_area_and_perimeter(grid: list[list[str]]) -> list[Region]:
+def calculate_area_and_perimeter(grid: Grid) -> list[Region]:
     """
     Find all regions in the grid and calculate their areas and perimeters.
 
     A region is a connected group of cells with the same plant type.
     Perimeter counts edges that border different plants or the grid boundary.
     """
-    size = grid_size(grid)
-    visited = create_visited_grid(size)
+    visited = Grid.create(grid.size, False)
     results = []
 
-    for r in range(size.row):
-        for c in range(size.col):
-            if not visited[r][c]:
-                coord = Coord(r, c)
-                plant = grid_get(grid, coord)
+    for r in range(grid.size.height):
+        for c in range(grid.size.width):
+            coord = Coord.from_rc(r, c)
+            if not visited[coord]:
+                plant = grid[coord]
                 area, perimeter = flood_fill_region(coord, plant, grid, visited)
                 results.append(Region(plant, area, perimeter))
 
@@ -147,14 +134,14 @@ def price_perimeter(file: str) -> int:
 
 def find_region_cells(
     start: Coord,
-    grid: list[list[str]],
-    visited: list[list[bool]],
+    grid: Grid,
+    visited: Grid,
 ) -> list[Coord]:
     """Find all cells in the same region using BFS."""
     queue = deque([start])
     region_cells = []
-    plant = grid_get(grid, start)
-    visited[start.row][start.col] = True
+    plant = grid[start]
+    visited[start] = True
 
     while queue:
         current = queue.popleft()
@@ -164,19 +151,19 @@ def find_region_cells(
             neighbor = current + direction
             if (
                 is_valid_and_same_plant(neighbor, plant, grid)
-                and not visited[neighbor.row][neighbor.col]
+                and not visited[neighbor]
             ):
-                visited[neighbor.row][neighbor.col] = True
+                visited[neighbor] = True
                 queue.append(neighbor)
 
     return region_cells
 
 
-def count_perimeter_sides(cells: list[Coord], grid: list[list[str]]) -> int:
+def count_perimeter_sides(cells: list[Coord], grid: Grid) -> int:
     """Count perimeter sides for a region."""
     sides = 0
     for coord in cells:
-        plant = grid_get(grid, coord)
+        plant = grid[coord]
         for direction in Coord.DIRECTIONS_CARDINAL:
             neighbor = coord + direction
             if not is_valid_and_same_plant(neighbor, plant, grid):
@@ -184,14 +171,13 @@ def count_perimeter_sides(cells: list[Coord], grid: list[list[str]]) -> int:
     return sides
 
 
-def calculate_area_and_sides(grid: list[list[str]]) -> list[tuple[str, int, int]]:
+def calculate_area_and_sides(grid: Grid) -> list[tuple[str, int, int]]:
     """Calculate area and sides for each region using flood fill with direction tracking."""
-    size = grid_size(grid)
-    visited = create_visited_grid(size)
+    visited = Grid.create(grid.size, False)
 
     def flood_fill(start: Coord, plant: str) -> tuple[int, int]:
         stack = [start]
-        visited[start.row][start.col] = True
+        visited[start] = True
         area = 0
         boundaries = set()  # Store all boundary edges as unique segments
 
@@ -209,9 +195,9 @@ def calculate_area_and_sides(grid: list[list[str]]) -> list[tuple[str, int, int]
             for direction in Coord.DIRECTIONS_CARDINAL:
                 neighbor = current + direction
                 if is_valid_and_same_plant(neighbor, plant, grid):
-                    if not visited[neighbor.row][neighbor.col]:
+                    if not visited[neighbor]:
                         stack.append(neighbor)
-                        visited[neighbor.row][neighbor.col] = True
+                        visited[neighbor] = True
                 else:
                     # Out of bounds or different plant - add boundary segment
                     boundaries.add(((current.row, current.col), direction_map[direction]))
@@ -221,26 +207,25 @@ def calculate_area_and_sides(grid: list[list[str]]) -> list[tuple[str, int, int]
         return area, sides
 
     results = []
-    for r in range(size.row):
-        for c in range(size.col):
-            if not visited[r][c]:
-                coord = Coord(r, c)
-                plant = grid_get(grid, coord)
+    for r in range(grid.size.height):
+        for c in range(grid.size.width):
+            coord = Coord.from_rc(r, c)
+            if not visited[coord]:
+                plant = grid[coord]
                 area, sides = flood_fill(coord, plant)
                 results.append((plant, area, sides))
     return results
 
 
-def calculate_total_price(grid: list[list[str]]) -> int:
+def calculate_total_price(grid: Grid) -> int:
     """Calculate total price for all regions (area * perimeter)."""
-    size = grid_size(grid)
-    visited = create_visited_grid(size)
+    visited = Grid.create(grid.size, False)
     total_price = 0
 
-    for r in range(size.row):
-        for c in range(size.col):
-            if not visited[r][c]:
-                coord = Coord(r, c)
+    for r in range(grid.size.height):
+        for c in range(grid.size.width):
+            coord = Coord.from_rc(r, c)
+            if not visited[coord]:
                 region_cells = find_region_cells(coord, grid, visited)
                 area = len(region_cells)
                 sides = count_perimeter_sides(region_cells, grid)
@@ -260,10 +245,10 @@ if __name__ == "__main__":
     run(
         price_perimeter,
         [
-            TestCase("12_example", 140),
-            TestCase("12_example_xo", 772),
-            TestCase("12_example_RIC", 1930),
-            TestCase("12_puzzle_input", 1488414),
+            TestCase("data/12_example", 140),
+            TestCase("data/12_example_xo", 772),
+            TestCase("data/12_example_RIC", 1930),
+            TestCase("data/12_puzzle_input", 1488414),
         ],
     )
 
@@ -271,10 +256,10 @@ if __name__ == "__main__":
     run(
         price_by_area_and_sides,
         [
-            TestCase("12_example", 80),
-            TestCase("12_example_xo", 436),
-            TestCase("12_example_EE", 236),
-            TestCase("12_example_AA", 368),
-            TestCase("12_puzzle_input", 911750),
+            TestCase("data/12_example", 80),
+            TestCase("data/12_example_xo", 436),
+            TestCase("data/12_example_EE", 236),
+            TestCase("data/12_example_AA", 368),
+            TestCase("data/12_puzzle_input", 911750),
         ],
     )

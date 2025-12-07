@@ -1,11 +1,11 @@
-from aoc import read_data_as_lines, run, TestCase, Coord
+from aoc import Input, run, TestCase, Coord
 
 
 def parse(data_file):
     GUARD_CHAR = "^"
     OBSTRUCTION_CHAR = "#"
     # read file contents
-    lines = read_data_as_lines(data_file)
+    lines = Input(data_file).as_lines()
 
     # Initialize variables
     guard_coordinate = None
@@ -16,11 +16,11 @@ def parse(data_file):
         # Strip removes newlines and trailing spaces
         for col, char in enumerate(line.strip()):
             if char == GUARD_CHAR:
-                guard_coordinate = Coord(row, col)
+                guard_coordinate = Coord.from_rc(row, col)
             elif char == OBSTRUCTION_CHAR:
-                obstruction_coordinates.add(Coord(row, col))
+                obstruction_coordinates.add(Coord.from_rc(row, col))
 
-    return guard_coordinate, obstruction_coordinates, Coord(row, col)
+    return guard_coordinate, obstruction_coordinates, Coord.from_rc(row, col)
 
 
 def find_path_unique_coords(direction, coord, obstructions, limits):
@@ -104,10 +104,10 @@ def part2(file):
 
 if __name__ == "__main__":
     run(part1, [
-        TestCase("06_example", 41),
-        TestCase("06_puzzle_input", 5095),
+        TestCase("./data/06_example", 41),
+        TestCase("./data/06_puzzle_input", 5095),
     ])
     run(part2, [
-        TestCase("06_example", 6),
-        TestCase("06_puzzle_input", 1933),
+        TestCase("./data/06_example", 6),
+        TestCase("./data/06_puzzle_input", 1933),
     ])

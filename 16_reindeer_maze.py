@@ -1,26 +1,16 @@
-from aoc import (
-    read_data_as_lines,
-    run,
-    TestCase,
-    find_first,
-    grid_max_bounds,
-    grid_get,
-    Coord,
-    dijkstra,
-)
+from aoc import Input, run, TestCase, Coord, Grid, dijkstra
 
 EAST = Coord.DIRECTIONS_CARDINAL.index(Coord.RIGHT)
 
 
 def parse(data_file):
-    matrix = read_data_as_lines(data_file)
-    start = find_first(matrix, "S")
-    end = find_first(matrix, "E")
-    return matrix, start, end
+    grid = Input(data_file).as_grid()
+    start = grid.find_first("S")
+    end = grid.find_first("E")
+    return grid, start, end
 
 
-def find_lowest_score(matrix, start, end):
-    max_bounds = grid_max_bounds(matrix)
+def find_lowest_score(grid, start, end):
     direction_cost = 1000
     forward_cost = 1
 
@@ -32,7 +22,7 @@ def find_lowest_score(matrix, start, end):
         # Try moving forward
         dc = Coord.DIRECTIONS_CARDINAL[direction]
         nc = coord + dc
-        if nc.in_bounds(max_bounds) and grid_get(matrix, nc) != "#":
+        if nc in grid and grid[nc] != "#":
             neighbors.append(((nc, direction), forward_cost))
 
         # Try rotating left and right
@@ -53,9 +43,8 @@ def find_lowest_score(matrix, start, end):
     )
 
 
-def find_all_best_path_tiles(matrix, start, end):
+def find_all_best_path_tiles(grid, start, end):
     """Find all tiles that are part of at least one best path."""
-    max_bounds = grid_max_bounds(matrix)
     direction_cost = 1000
     forward_cost = 1
 
@@ -67,7 +56,7 @@ def find_all_best_path_tiles(matrix, start, end):
         # Try moving forward
         dc = Coord.DIRECTIONS_CARDINAL[direction]
         nc = coord + dc
-        if nc.in_bounds(max_bounds) and grid_get(matrix, nc) != "#":
+        if nc in grid and grid[nc] != "#":
             neighbors.append(((nc, direction), forward_cost))
 
         # Try rotating left and right
@@ -105,7 +94,7 @@ def find_all_best_path_tiles(matrix, start, end):
         dc = Coord.DIRECTIONS_CARDINAL[direction]
         prev_coord = coord - dc
 
-        if prev_coord.in_bounds(max_bounds) and grid_get(matrix, prev_coord) != "#":
+        if prev_coord in grid and grid[prev_coord] != "#":
             prev_state = (prev_coord, direction)
             expected_score = current_score - forward_cost
             if prev_state in best_scores and best_scores[prev_state] == expected_score:
@@ -136,13 +125,13 @@ def part2(file):
 
 if __name__ == "__main__":
     run(part1, [
-        TestCase("16_example", 7036),
-        TestCase("16_example2", 11048),
-        TestCase("16_puzzle_input", 94444),
+        TestCase("data/16_example", 7036),
+        TestCase("data/16_example2", 11048),
+        TestCase("data/16_puzzle_input", 94444),
     ])
 
     run(part2, [
-        TestCase("16_example", 45),
-        TestCase("16_example2", 64),
-        TestCase("16_puzzle_input", 502),
+        TestCase("data/16_example", 45),
+        TestCase("data/16_example2", 64),
+        TestCase("data/16_puzzle_input", 502),
     ])

@@ -1,21 +1,21 @@
-from aoc import read_data_as_sections, run, TestCase
+from aoc import Input, run, TestCase
 from collections import defaultdict
 from functools import cmp_to_key
 
 
 def parse(data_file):
-    sections = read_data_as_sections(data_file)
+    section1, section2 = Input(data_file).as_sections()
 
     # Section 1: Parsing page ordering rules into a dictionary
     page_ordering_rules = defaultdict(list)
 
-    for line in sections[0].splitlines():
+    for line in section1.as_lines():
         key, value = map(int, line.split("|"))
         page_ordering_rules[key].append(value)
 
     # Section 2: Parsing page updates into a list of lists
     page_updates = [
-        list(map(int, line.split(","))) for line in sections[1].splitlines()
+        list(map(int, line.split(","))) for line in section2.as_lines()
     ]
 
     return page_ordering_rules, page_updates
@@ -75,10 +75,10 @@ def part2(file):
 
 if __name__ == "__main__":
     run(part1, [
-        TestCase("05_example", 143),
-        TestCase("05_puzzle_input", 7198),
+        TestCase("./data/05_example", 143),
+        TestCase("./data/05_puzzle_input", 7198),
     ])
     run(part2, [
-        TestCase("05_example", 123),
-        TestCase("05_puzzle_input", 4230),
+        TestCase("./data/05_example", 123),
+        TestCase("./data/05_puzzle_input", 4230),
     ])

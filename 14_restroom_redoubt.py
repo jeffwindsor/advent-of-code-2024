@@ -1,4 +1,4 @@
-from aoc import read_data_as_lines, extract_ints, run, TestCase
+from aoc import Input, extract_ints, run, TestCase
 
 
 def parse_line(line):
@@ -7,7 +7,7 @@ def parse_line(line):
 
 
 def parse_file(data_file):
-    return [parse_line(line) for line in read_data_as_lines(data_file)]
+    return [parse_line(line) for line in Input(data_file).as_lines()]
 
 
 def simulate_robot_positions(robots, seconds, width, height):
@@ -49,8 +49,7 @@ def calculate_safety_factor(quadrants):
     return result
 
 
-def part1(args):
-    filepath, seconds, width, height = args
+def part1(filepath, seconds, width, height):
     robots = parse_file(filepath)
     final_positions = simulate_robot_positions(robots, seconds, width, height)
     quadrants = count_quadrants(final_positions, width, height)
@@ -75,8 +74,7 @@ def find_minimum_safety_factor(robots, max_seconds, width, height):
     return best_second
 
 
-def part2(args):
-    filepath, max_seconds, width, height = args
+def part2(filepath, max_seconds, width, height):
     robots = parse_file(filepath)
     return find_minimum_safety_factor(robots, max_seconds, width, height)
 
@@ -85,10 +83,10 @@ if __name__ == "__main__":
     run(
         part1,
         [
-            TestCase(("14_example", 100, 11, 7), 12),
-            TestCase(("14_puzzle_input", 100, 101, 103), 218619324),
+            TestCase(("./data/14_example", 100, 11, 7), 12),
+            TestCase(("./data/14_puzzle_input", 100, 101, 103), 218619324),
         ],
     )
     run(part2, [
-        TestCase(("14_puzzle_input", 7000, 101, 103), 6446),
+        TestCase(("./data/14_puzzle_input", 7000, 101, 103), 6446),
     ])

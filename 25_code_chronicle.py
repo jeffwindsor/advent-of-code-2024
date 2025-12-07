@@ -1,4 +1,4 @@
-from aoc import read_data_as_sections, run, TestCase
+from aoc import Input, run, TestCase
 
 # Puzzle constants
 LOCK_TOP_ROW = "#####"
@@ -46,7 +46,7 @@ def fits(lock_heights, key_heights):
 
 def parse_data(data_file):
     """Parse the input data into locks and keys."""
-    sections = read_data_as_sections(data_file)
+    sections = Input(data_file).content.split("\n\n")
 
     locks = []
     keys = []
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     run(
         count_fitting_pairs_part1,
         [
-            TestCase("25_example", 3),
-            TestCase("25_puzzle_input", 3439),
+            TestCase("./data/25_example", 3),
+            TestCase("./data/25_puzzle_input", 3439),
         ],
     )
