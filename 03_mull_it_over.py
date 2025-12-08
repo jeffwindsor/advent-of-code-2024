@@ -1,4 +1,4 @@
-from aoc import read_data, run, TestCase
+from aoc import Input, run, TestCase
 from re import findall
 
 
@@ -24,7 +24,7 @@ def apply_do_and_dont(matches):
 def part1(data_file):
     pattern = r"mul\((\d{1,3}),(\d{1,3})\)"
     # find all returns tuple of (x,y)
-    multiplies = findall(pattern, read_data(data_file))
+    multiplies = findall(pattern, Input(data_file).content)
     return score(multiplies)
 
 
@@ -32,7 +32,7 @@ def part2(data_file):
     pattern = r"(mul\(\d{1,3},\d{1,3}\))|(do\(\))|(don't\(\))"
     # flatten since findall returns a tuple per match ('mul(x,y)','do()', "don't()")
     instructions = [
-        m[0] or m[1] or m[2] for m in findall(pattern, read_data(data_file))
+        m[0] or m[1] or m[2] for m in findall(pattern, Input(data_file).content)
     ]
     multiplies = apply_do_and_dont(instructions)
     return score(multiplies)
@@ -40,10 +40,10 @@ def part2(data_file):
 
 if __name__ == "__main__":
     run(part1, [
-        TestCase("03_example", 161),
-        TestCase("03_puzzle_input", 170807108),
+        TestCase("./data/03_example", 161),
+        TestCase("./data/03_puzzle_input", 170807108),
     ])
     run(part2, [
-        TestCase("03_example2", 48),
-        TestCase("03_puzzle_input", 74838033),
+        TestCase("./data/03_example2", 48),
+        TestCase("./data/03_puzzle_input", 74838033),
     ])

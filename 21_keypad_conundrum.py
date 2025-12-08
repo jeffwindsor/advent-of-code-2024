@@ -1,4 +1,4 @@
-from aoc import read_data_as_lines, run, TestCase, Coord
+from aoc import Input, run, TestCase, Coord
 from itertools import product
 from collections import deque
 
@@ -229,7 +229,7 @@ def solve(data_file, num_directional_robots):
     result = []
     memo = {}
 
-    for button_seq in read_data_as_lines(data_file):
+    for button_seq in Input(data_file).as_lines():
         # Calculate the minimum length needed to type this sequence
         total_length = 0
         current_button = "A"  # Robot at numeric keypad starts at A
@@ -285,17 +285,17 @@ if __name__ == "__main__":
     run(
         part1,
         [
-            TestCase("21_pre_example", 1972),
-            # TestCase("21_pre_example2", 2660),
-            TestCase("21_example", 126384),
-            TestCase("21_puzzle_input", 278748),
+            TestCase("./data/21_pre_example", 1972),
+            # TestCase("./data/21_pre_example2", 2660),
+            TestCase("./data/21_example", 126384),
+            TestCase("./data/21_puzzle_input", 278748),
         ],
     )
 
     run(
         part2,
         [
-            TestCase("21_example", 154115708116294),
-            TestCase("21_puzzle_input", 337744744231414),
+            TestCase("./data/21_example", 154115708116294),
+            TestCase("./data/21_puzzle_input", 337744744231414),
         ],
     )

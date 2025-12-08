@@ -1,4 +1,4 @@
-from aoc import read_data_as_lines, run, TestCase, count_digits
+from aoc import Input, run, TestCase, count_digits
 
 PLUS = "+"
 MULTIPLY = "*"
@@ -12,7 +12,7 @@ def parse_line(line):
 
 
 def parse(data_file):
-    lines = read_data_as_lines(data_file)
+    lines = Input(data_file).as_lines()
     return [parse_line(line) for line in lines]
 
 
@@ -76,10 +76,10 @@ def part2(file):
 
 if __name__ == "__main__":
     run(part1, [
-        TestCase("07_example", 3749),
-        TestCase("07_puzzle_input", 1153997401072),
+        TestCase("./data/07_example", 3749),
+        TestCase("./data/07_puzzle_input", 1153997401072),
     ])
     run(part2, [
-        TestCase("07_example", 11387),
-        TestCase("07_puzzle_input", 97902809384118),
+        TestCase("./data/07_example", 11387),
+        TestCase("./data/07_puzzle_input", 97902809384118),
     ])

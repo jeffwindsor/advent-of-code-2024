@@ -1,6 +1,6 @@
 import numpy as np
 from math import isclose
-from aoc import read_data, extract_ints, run, TestCase
+from aoc import Input, extract_ints, run, TestCase
 
 
 def split_list(xs, n):
@@ -8,7 +8,7 @@ def split_list(xs, n):
 
 
 def parse(data_file):
-    text = read_data(data_file)
+    text = Input(data_file).content
     return split_list(extract_ints(text), 6)
 
 
@@ -46,10 +46,10 @@ def part2(file):
 if __name__ == "__main__":
     # print(f"example: {parse('example')}")
     run(part1, [
-        TestCase("13_example", 480),
-        TestCase("13_puzzle_input", 37128),
+        TestCase("./data/13_example", 480),
+        TestCase("./data/13_puzzle_input", 37128),
     ])
     run(part2, [
-        TestCase("13_example", 875318608908),
-        TestCase("13_puzzle_input", 74914228471331),
+        TestCase("./data/13_example", 875318608908),
+        TestCase("./data/13_puzzle_input", 74914228471331),
     ])
