@@ -1,5 +1,9 @@
 from collections import defaultdict
 from re import findall
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .grid import Grid
 
 
 def extract_ints(text: str) -> list[int]:
@@ -31,6 +35,16 @@ class Parser:
             [int(char) if char.isdigit() else empty_value for char in line]
             for line in self.as_lines()
         ]
+
+    def as_grid(self) -> "Grid":
+        """
+        Parse input as a Grid instance for coordinate-based access.
+
+        Returns:
+            Grid instance wrapping character grid
+        """
+        from .grid import Grid
+        return Grid(self.as_char_grid())
 
     def as_columns(
         self, separator: str | None = None, converter: type = int
@@ -91,6 +105,15 @@ class Input:
 
     def as_int_grid(self, empty_value: int = -1) -> list[list[int]]:
         return self.parser.as_int_grid(empty_value)
+
+    def as_grid(self) -> "Grid":
+        """
+        Parse input as a Grid instance for coordinate-based access.
+
+        Returns:
+            Grid instance wrapping character grid
+        """
+        return self.parser.as_grid()
 
     def as_columns(
         self, separator: str | None = None, converter: type = int
