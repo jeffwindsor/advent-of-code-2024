@@ -112,7 +112,7 @@ def calculate_area_and_perimeter(grid: Grid) -> list[Region]:
     A region is a connected group of cells with the same plant type.
     Perimeter counts edges that border different plants or the grid boundary.
     """
-    visited = Grid.create_visited(grid.size, False)
+    visited = Grid.create(grid.size, False)
     results = []
 
     for r in range(grid.size.height):
@@ -173,7 +173,7 @@ def count_perimeter_sides(cells: list[Coord], grid: Grid) -> int:
 
 def calculate_area_and_sides(grid: Grid) -> list[tuple[str, int, int]]:
     """Calculate area and sides for each region using flood fill with direction tracking."""
-    visited = Grid.create_visited(grid.size, False)
+    visited = Grid.create(grid.size, False)
 
     def flood_fill(start: Coord, plant: str) -> tuple[int, int]:
         stack = [start]
@@ -219,7 +219,7 @@ def calculate_area_and_sides(grid: Grid) -> list[tuple[str, int, int]]:
 
 def calculate_total_price(grid: Grid) -> int:
     """Calculate total price for all regions (area * perimeter)."""
-    visited = Grid.create_visited(grid.size, False)
+    visited = Grid.create(grid.size, False)
     total_price = 0
 
     for r in range(grid.size.height):
