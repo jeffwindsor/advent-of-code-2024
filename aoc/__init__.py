@@ -38,6 +38,7 @@ __all__ = [
     # From graph
     "bfs",
     "dfs",
+    "bfs_grid_path",
     "dfs_grid_path",
     "dijkstra",
     "find_max_clique",
