@@ -1,4 +1,4 @@
-from aoc import read_data_as_sections, run, TestCase
+from aoc import Input, run, TestCase
 
 # Gate operation constants
 OP_AND = "AND"
@@ -8,17 +8,17 @@ OP_XOR = "XOR"
 
 def parse_data(data_file):
     """Parse initial wire values and gate connections."""
-    sections = read_data_as_sections(data_file)
+    section1, section2 = Input(data_file).as_two_parts()
 
     # Parse initial wire values from first section
     wire_values = {}
-    for line in sections[0].splitlines():
+    for line in section1.as_lines():
         wire, value = line.split(': ')
         wire_values[wire] = int(value)
 
     # Parse gate connections from second section
     gates = []
-    for line in sections[1].splitlines():
+    for line in section2.as_lines():
         parts = line.split(' -> ')
         output = parts[1]
         input_parts = parts[0].split()
@@ -178,9 +178,9 @@ if __name__ == "__main__":
     run(
         decode_wire_output,
         [
-            TestCase("24_example_01", 4),
-            TestCase("24_example_02", 2024),
-            TestCase("24_puzzle_input", 52038112429798),
+            TestCase("./data/24_example_01", 4),
+            TestCase("./data/24_example_02", 2024),
+            TestCase("./data/24_puzzle_input", 52038112429798),
         ],
     )
 
@@ -189,6 +189,6 @@ if __name__ == "__main__":
         [
             # Note: Part 2 example is a simple AND circuit, not an adder,
             # so adder-specific detection rules don't apply to it
-            TestCase("24_puzzle_input", "cph,jqn,kwb,qkf,tgr,z12,z16,z24"),
+            TestCase("./data/24_puzzle_input", "cph,jqn,kwb,qkf,tgr,z12,z16,z24"),
         ],
     )

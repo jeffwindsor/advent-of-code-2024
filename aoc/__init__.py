@@ -5,18 +5,18 @@ Organized into modules but accessible from top level for convenience:
 - coord: Coordinate class and utilities
 - grid: Matrix/grid operations
 - graph: Graph algorithms (BFS, DFS, Dijkstra, max clique)
-- data: Data reading and parsing
+- input: Data reading and parsing (Input and Parser classes)
 - math: Number/math utilities
 - testing: Test framework
 
 Import styles supported:
     # Simple (recommended for puzzles)
-    from aoc import Coord, bfs, read_data_as_lines, run, TestCase
+    from aoc import Coord, bfs, Input, run, TestCase
 
     # Explicit (optional for clarity)
     from aoc.coord import Coord
     from aoc.graph import bfs
-    from aoc.data import read_data_as_lines
+    from aoc.input import Input, Parser
     from aoc.testing import run, TestCase
 """
 
@@ -24,7 +24,6 @@ Import styles supported:
 from .coord import *
 from .grid import *
 from .graph import *
-from .data import *
 from .input import *
 from .math import *
 from .testing import *
@@ -54,20 +53,10 @@ __all__ = [
     "dfs_grid_path",
     "dijkstra",
     "find_max_clique",
-    # From data
-    "read_data",
-    "read_data_as_lines",
-    "read_data_as_ints",
-    "read_data_as_char_grid",
-    "read_data_as_int_grid",
-    "read_data_as_coord_pairs",
-    "read_data_as_graph_edges",
-    "read_data_as_sections",
-    "read_data_as_columns",
-    "extract_ints",
     # From input
     "Input",
     "Parser",
+    "extract_ints",
     # From math
     "count_continuous_segments",
     "count_digits",

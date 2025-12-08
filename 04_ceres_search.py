@@ -1,5 +1,5 @@
 from aoc import (
-    read_data_as_lines,
+    Input,
     run,
     TestCase,
     Coord,
@@ -8,7 +8,7 @@ from aoc import (
 
 
 def parse(data_file):
-    return read_data_as_lines(data_file)
+    return Input(data_file).as_lines()
 
 
 def search_word(word, matrix):
@@ -45,12 +45,12 @@ def part2(file):
 
 if __name__ == "__main__":
     run(part1, [
-        TestCase("04_example1.1", 4),
-        TestCase("04_example1.2", 18),
-        TestCase("04_puzzle_input", 2662),
+        TestCase("./data/04_example1.1", 4),
+        TestCase("./data/04_example1.2", 18),
+        TestCase("./data/04_puzzle_input", 2662),
     ])
     run(part2, [
-        TestCase("04_example2.1", 1),
-        TestCase("04_example2.2", 9),
-        TestCase("04_puzzle_input", 2034),
+        TestCase("./data/04_example2.1", 1),
+        TestCase("./data/04_example2.2", 9),
+        TestCase("./data/04_puzzle_input", 2034),
     ])

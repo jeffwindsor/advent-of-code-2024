@@ -1,10 +1,10 @@
-from aoc import read_data_as_sections, run, TestCase
+from aoc import Input, run, TestCase
 
 
 def parse_input(data_file):
-    sections = read_data_as_sections(data_file)
-    patterns = [p.strip() for p in sections[0].split(",")]
-    designs = sections[1].splitlines()
+    section1, section2 = Input(data_file).as_two_parts()
+    patterns = [p.strip() for p in section1.content.split(",")]
+    designs = section2.as_lines()
     return patterns, designs
 
 
@@ -54,6 +54,6 @@ def parts(file):
 
 if __name__ == "__main__":
     run(parts, [
-        TestCase("19_example", (6, 16)),
-        TestCase("19_puzzle_input", (304, 705756472327497)),
+        TestCase("./data/19_example", (6, 16)),
+        TestCase("./data/19_puzzle_input", (304, 705756472327497)),
     ])

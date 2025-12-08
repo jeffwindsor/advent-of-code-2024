@@ -1,4 +1,4 @@
-from aoc import read_data, run, TestCase, Coord
+from aoc import Input, run, TestCase, Coord
 
 # Constants
 ROBOT = "@"
@@ -17,7 +17,7 @@ DIRECTIONS = {
 
 
 def parse_file(data_file):
-    warehouse_map, move_lines = read_data(data_file).split("\n\n")
+    warehouse_map, move_lines = Input(data_file).content.split("\n\n")
     grid = [list(row) for row in warehouse_map.splitlines()]
     commands = "".join(move_lines.splitlines())
     return grid, commands
@@ -247,12 +247,12 @@ def part2(filepath):
 
 if __name__ == "__main__":
     run(part1, [
-        TestCase("15_small_example", 2028),
-        TestCase("15_example", 10092),
-        TestCase("15_puzzle_input", 1465523),
+        TestCase("./data/15_small_example", 2028),
+        TestCase("./data/15_example", 10092),
+        TestCase("./data/15_puzzle_input", 1465523),
     ])
 
     run(part2, [
-        TestCase("15_example", 9021),
-        TestCase("15_puzzle_input", 1471049),
+        TestCase("./data/15_example", 9021),
+        TestCase("./data/15_puzzle_input", 1471049),
     ])

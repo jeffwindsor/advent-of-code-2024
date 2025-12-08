@@ -2,6 +2,10 @@ from collections import defaultdict
 from re import findall
 
 
+def extract_ints(text: str) -> list[int]:
+    return list(map(int, findall(r"-?\d+", text)))
+
+
 class Parser:
     def __init__(self, content: str):
         self._content = content
@@ -55,10 +59,6 @@ class Parser:
 
         return dict(graph)
 
-    @staticmethod
-    def extract_ints(text: str) -> list[int]:
-        return list(map(int, findall(r"-?\d+", text)))
-
 
 class Input:
     def __init__(self, data_file: str):
@@ -105,9 +105,5 @@ class Input:
     ) -> dict[str, set[str]]:
         return self.parser.as_graph_edges(separator, directed)
 
-    @staticmethod
-    def extract_ints(text: str) -> list[int]:
-        return Parser.extract_ints(text)
 
-
-__all__ = ["Input", "Parser"]
+__all__ = ["Input", "Parser", "extract_ints"]
