@@ -23,8 +23,8 @@ def is_valid_x_mas(grid, coord):
 def search_x_mas(grid):
     return sum(
         is_valid_x_mas(grid, coord)
-        for r in range(1, grid.size.row - 1)
-        for c in range(1, grid.size.col - 1)
+        for r in range(1, grid.size.height - 1)
+        for c in range(1, grid.size.width - 1)
         if (coord := Coord(r, c))
     )
 
