@@ -1,4 +1,4 @@
-from aoc import Input, run, TestCase, Coord, Grid, bfs
+from aoc import Input, run, TestCase, Coord, Dimension, Grid, bfs
 
 
 def parse_input(data_file):
@@ -7,7 +7,7 @@ def parse_input(data_file):
 
 def simulate_memory_space(grid_size, byte_positions, total_bytes):
     # Initialize the grid using aoc utility
-    grid = Grid.create(grid_size, ".")
+    grid = Grid.create(Dimension(grid_size, grid_size), ".")
 
     # Corrupt the grid based on the incoming bytes
     for i in range(min(total_bytes, len(byte_positions))):

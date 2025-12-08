@@ -102,33 +102,18 @@ class Grid:
         return True
 
     @staticmethod
-    def create_visited(size: Dimension, initial_value: bool = False) -> Grid:
+    def create(size: Dimension, initial_value: Any) -> Grid:
         """
-        Create a boolean grid for visited tracking.
+        Create a grid filled with initial value.
 
         Args:
-            size: Size of the grid as Dimensions(width, height)
-            initial_value: Initial value for all cells (default: False)
-
-        Returns:
-            Grid instance with boolean values
-        """
-        data = [[initial_value] * size.width for _ in range(size.height)]
-        return Grid(data)
-
-    @staticmethod
-    def create(size: int, initial_value: Any = ".") -> Grid:
-        """
-        Create a square grid filled with initial value.
-
-        Args:
-            size: Size of the square grid (size x size)
-            initial_value: Value to fill the grid with (default: '.')
+            size: Size of the grid as Dimension(width, height)
+            initial_value: Value to fill the grid with
 
         Returns:
             Grid instance initialized with the specified value
         """
-        data = [[initial_value for _ in range(size)] for _ in range(size)]
+        data = [[initial_value] * size.width for _ in range(size.height)]
         return Grid(data)
 
 
