@@ -1,6 +1,7 @@
 """Coordinate class and coordinate utilities."""
 
 from dataclasses import dataclass
+from typing import ClassVar
 
 
 @dataclass(frozen=True)
@@ -9,6 +10,22 @@ class Coord:
 
     row: int
     col: int
+
+    # Class-level direction constants (defined after class for proper initialization)
+    ZERO: ClassVar["Coord"]
+    UP: ClassVar["Coord"]
+    RIGHT: ClassVar["Coord"]
+    DOWN: ClassVar["Coord"]
+    LEFT: ClassVar["Coord"]
+    UP_LEFT: ClassVar["Coord"]
+    DOWN_LEFT: ClassVar["Coord"]
+    UP_RIGHT: ClassVar["Coord"]
+    DOWN_RIGHT: ClassVar["Coord"]
+    DIRECTIONS_CARDINAL: ClassVar[list["Coord"]]
+    DIRECTIONS_INTERCARDINAL: ClassVar[list["Coord"]]
+    DIRECTIONS_ALL: ClassVar[list["Coord"]]
+    TURN_CLOCKWISE: ClassVar[dict["Coord", "Coord"]]
+    TURN_COUNTER_CLOCKWISE: ClassVar[dict["Coord", "Coord"]]
 
     def __add__(self, other: "Coord") -> "Coord":
         """Add two coordinates component-wise."""
