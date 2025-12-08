@@ -1,18 +1,10 @@
 from itertools import combinations
-from aoc import (
-    read_data_as_lines,
-    run,
-    TestCase,
-    Coord,
-    grid_max_bounds,
-    filter_coords_in_bounds,
-    group_by_value,
-)
+from aoc import Input, run, TestCase, Coord, filter_coords_in_bounds
 
 
 def parse(data_file):
-    lines = read_data_as_lines(data_file)
-    return grid_max_bounds(lines), group_by_value(lines, exclude=".")
+    grid = Input(data_file).as_grid()
+    return grid.max_bounds, grid.group_by_value(exclude=".")
 
 
 def extend_in_direction(coord, diff, forward, bounds):
@@ -56,10 +48,10 @@ def part2(file):
 
 if __name__ == "__main__":
     run(part1, [
-        TestCase("08_example", 14),
-        TestCase("08_puzzle_input", 426),
+        TestCase("data/08_example", 14),
+        TestCase("data/08_puzzle_input", 426),
     ])
     run(part2, [
-        TestCase("08_example", 34),
-        TestCase("08_puzzle_input", 1359),
+        TestCase("data/08_example", 34),
+        TestCase("data/08_puzzle_input", 1359),
     ])

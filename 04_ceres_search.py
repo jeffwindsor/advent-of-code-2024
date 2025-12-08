@@ -1,37 +1,31 @@
-from aoc import (
-    Input,
-    run,
-    TestCase,
-    Coord,
-    search_in_direction,
-)
+from aoc import Input, run, TestCase, Coord, Grid
 
 
 def parse(data_file):
-    return Input(data_file).as_lines()
+    return Input(data_file).as_grid()
 
 
-def search_word(word, matrix):
+def search_word(word, grid):
     return sum(
-        search_in_direction(matrix, Coord(r, c), direction, word)
-        for r, row in enumerate(matrix)
-        for c, cell in enumerate(row)
+        grid.search_in_direction(coord, direction, word)
+        for coord, _ in grid.coords()
         for direction in Coord.DIRECTIONS_ALL
     )
 
 
-def is_valid_x_mas(matrix, r, c):
-    if matrix[r][c] != "A":
+def is_valid_x_mas(grid, coord):
+    if grid[coord] != "A":
         return False
-    corners = map(lambda cc: matrix[r + cc.row][c + cc.col], Coord.DIRECTIONS_INTERCARDINAL)
+    corners = [grid[coord + cc] for cc in Coord.DIRECTIONS_INTERCARDINAL]
     return "".join(corners) in {"MSMS", "MMSS", "SSMM", "SMSM"}
 
 
-def search_x_mas(matrix):
+def search_x_mas(grid):
     return sum(
-        is_valid_x_mas(matrix, r, c)
-        for r in range(1, len(matrix) - 1)
-        for c in range(1, len(matrix[0]) - 1)
+        is_valid_x_mas(grid, coord)
+        for r in range(1, grid.size.row - 1)
+        for c in range(1, grid.size.col - 1)
+        if (coord := Coord(r, c))
     )
 
 

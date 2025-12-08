@@ -43,8 +43,9 @@ def find_lowest_score(grid, start, end):
     )
 
 
-def find_all_best_path_tiles(grid, start, end):
+def find_all_best_path_tiles(matrix, start, end):
     """Find all tiles that are part of at least one best path."""
+    max_bounds = grid_max_bounds(matrix)
     direction_cost = 1000
     forward_cost = 1
 
@@ -56,7 +57,7 @@ def find_all_best_path_tiles(grid, start, end):
         # Try moving forward
         dc = Coord.DIRECTIONS_CARDINAL[direction]
         nc = coord + dc
-        if nc in grid and grid[nc] != "#":
+        if nc.in_bounds(max_bounds) and grid_get(matrix, nc) != "#":
             neighbors.append(((nc, direction), forward_cost))
 
         # Try rotating left and right
@@ -94,7 +95,7 @@ def find_all_best_path_tiles(grid, start, end):
         dc = Coord.DIRECTIONS_CARDINAL[direction]
         prev_coord = coord - dc
 
-        if prev_coord in grid and grid[prev_coord] != "#":
+        if prev_coord.in_bounds(max_bounds) and grid_get(matrix, prev_coord) != "#":
             prev_state = (prev_coord, direction)
             expected_score = current_score - forward_cost
             if prev_state in best_scores and best_scores[prev_state] == expected_score:
@@ -125,13 +126,13 @@ def part2(file):
 
 if __name__ == "__main__":
     run(part1, [
-        TestCase("data/16_example", 7036),
-        TestCase("data/16_example2", 11048),
-        TestCase("data/16_puzzle_input", 94444),
+        TestCase("16_example", 7036),
+        TestCase("16_example2", 11048),
+        TestCase("16_puzzle_input", 94444),
     ])
 
     run(part2, [
-        TestCase("data/16_example", 45),
-        TestCase("data/16_example2", 64),
-        TestCase("data/16_puzzle_input", 502),
+        TestCase("16_example", 45),
+        TestCase("16_example2", 64),
+        TestCase("16_puzzle_input", 502),
     ])

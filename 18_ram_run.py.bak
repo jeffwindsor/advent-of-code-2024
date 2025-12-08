@@ -1,35 +1,47 @@
-from aoc import Input, run, TestCase, Coord, Grid, bfs
+from aoc import (
+    read_data_as_coord_pairs,
+    run,
+    TestCase,
+    Coord,
+    create_grid,
+    grid_set,
+    grid_get,
+    grid_max_bounds,
+    bfs,
+)
 
 
 def parse_input(data_file):
-    return Input(data_file).as_coord_pairs()
+    return read_data_as_coord_pairs(data_file)
 
 
 def simulate_memory_space(grid_size, byte_positions, total_bytes):
     # Initialize the grid using aoc utility
-    grid = Grid.create(grid_size, ".")
+    grid = create_grid(grid_size, ".")
 
     # Corrupt the grid based on the incoming bytes
     for i in range(min(total_bytes, len(byte_positions))):
         x, y = byte_positions[i]
         coord = Coord(y, x)  # Convert (x,y) to (row, col)
-        if coord in grid:
-            grid[coord] = "#"
+        if coord.in_bounds(grid_max_bounds(grid)):
+            grid_set(grid, coord, "#")
 
     return grid
 
 
 def find_shortest_path(grid):
+    grid_size = len(grid)
     start = Coord(0, 0)
-    end = Coord(grid.size.row - 1, grid.size.col - 1)
+    end = Coord(grid_size - 1, grid_size - 1)
+    max_bounds = grid_max_bounds(grid)
 
     # Define neighbors function for BFS
     def neighbors_func(coord):
         return [
             neighbor
             for direction in Coord.DIRECTIONS_CARDINAL
-            if (neighbor := coord + direction) in grid
-            and grid[neighbor] == "."
+            if (neighbor := coord + direction).in_bounds(max_bounds)
+            and grid_get(grid, neighbor) == "."
         ]
 
     # Use aoc.bfs() to find distances
@@ -91,11 +103,11 @@ def part2(args):
 
 if __name__ == "__main__":
     run(part1, [
-        TestCase(("data/18_example", 7, 12), 22),
-        TestCase(("data/18_puzzle_input", 71, 1024), 226),
+        TestCase(("18_example", 7, 12), 22),
+        TestCase(("18_puzzle_input", 71, 1024), 226),
     ])
 
     run(part2, [
-        TestCase(("data/18_example", 7), "6,1"),
-        TestCase(("data/18_puzzle_input", 71), "60,46"),
+        TestCase(("18_example", 7), "6,1"),
+        TestCase(("18_puzzle_input", 71), "60,46"),
     ])

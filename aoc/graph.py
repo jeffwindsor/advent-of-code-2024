@@ -4,7 +4,7 @@ from typing import Any, Callable
 from collections import deque
 from heapq import heappush, heappop
 from .coord import Coord
-from .grid import Grid, grid_contains_coord, grid_get
+from .grid import Grid
 
 
 def bfs(
@@ -121,7 +121,7 @@ def dfs_grid_path(
     optimized for grid-based pathfinding problems.
 
     Args:
-        grid: 2D grid/matrix to search through
+        grid: Grid instance to search through
         start: Starting coordinate
         end: Goal coordinate
         walkable_values: Set of grid values that can be traversed
@@ -130,7 +130,7 @@ def dfs_grid_path(
         List of coordinates forming path from start to end, or empty list if no path found
 
     Example:
-        >>> maze = [['#', '.', '#'], ['.', '.', '.'], ['#', '.', '#']]
+        >>> maze = Grid([['#', '.', '#'], ['.', '.', '.'], ['#', '.', '#']])
         >>> path = dfs_grid_path(maze, Coord(0,1), Coord(2,1), {'.'}  )
         >>> len(path) > 0
         True
@@ -141,15 +141,12 @@ def dfs_grid_path(
     """
     def neighbors_func(coord: Coord) -> list[Coord]:
         """Get valid neighboring coordinates in the grid."""
-        neighbors = []
-        for direction in Coord.DIRECTIONS_CARDINAL:
-            next_position = coord + direction
-            if (
-                grid_contains_coord(grid, next_position)
-                and grid_get(grid, next_position) in walkable_values
-            ):
-                neighbors.append(next_position)
-        return neighbors
+        return [
+            neighbor
+            for direction in Coord.DIRECTIONS_CARDINAL
+            if (neighbor := coord + direction) in grid
+            and grid[neighbor] in walkable_values
+        ]
 
     def goal_func(coord: Coord) -> bool:
         """Check if we've reached the goal."""
