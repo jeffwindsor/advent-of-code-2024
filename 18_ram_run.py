@@ -21,7 +21,7 @@ def simulate_memory_space(grid_size, byte_positions, total_bytes):
 
 def find_shortest_path(grid):
     start = Coord(0, 0)
-    end = Coord(grid.size.row - 1, grid.size.col - 1)
+    end = Coord(grid.size.height - 1, grid.size.width - 1)
 
     # Define neighbors function for BFS
     def neighbors_func(coord):

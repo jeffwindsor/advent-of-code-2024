@@ -1,8 +1,10 @@
 """Grid utility functions and Grid class."""
 
+from __future__ import annotations
+
 from typing import Any, Iterator
 from dataclasses import dataclass
-from .coord import Coord
+from .coord import Coord, Dimension
 
 
 @dataclass
@@ -15,6 +17,7 @@ class Grid:
     - coord in grid to check bounds
     - Integrates seamlessly with Coord class
     """
+
     data: list[list[Any]]
 
     def __getitem__(self, coord: Coord) -> Any:
@@ -30,15 +33,17 @@ class Grid:
         return coord.in_bounds(self.max_bounds)
 
     @property
-    def size(self) -> Coord:
-        """Return size of grid as Coord(rows, cols)."""
-        return Coord(len(self.data), len(self.data[0]) if self.data else 0)
+    def size(self) -> Dimension:
+        """Return size of grid as Dimensions(width, height)."""
+        return Dimension(
+            width=len(self.data[0]) if self.data else 0, height=len(self.data)
+        )
 
     @property
     def max_bounds(self) -> Coord:
-        """Return maximum valid indices as Coord(max_row, max_col)."""
+        """Return maximum valid indices as Dimensions(max_col, max_row)."""
         size = self.size
-        return Coord(size.row - 1, size.col - 1)
+        return Coord(col=size.width - 1, row=size.height - 1)
 
     def coords(self) -> Iterator[tuple[Coord, Any]]:
         """
@@ -97,22 +102,22 @@ class Grid:
         return True
 
     @staticmethod
-    def create_visited(size: Coord, initial_value: bool = False) -> "Grid":
+    def create_visited(size: Dimension, initial_value: bool = False) -> Grid:
         """
         Create a boolean grid for visited tracking.
 
         Args:
-            size: Size of the grid as Coord(rows, cols)
+            size: Size of the grid as Dimensions(width, height)
             initial_value: Initial value for all cells (default: False)
 
         Returns:
             Grid instance with boolean values
         """
-        data = [[initial_value] * size.col for _ in range(size.row)]
+        data = [[initial_value] * size.width for _ in range(size.height)]
         return Grid(data)
 
     @staticmethod
-    def create(size: int, initial_value: Any = ".") -> "Grid":
+    def create(size: int, initial_value: Any = ".") -> Grid:
         """
         Create a square grid filled with initial value.
 

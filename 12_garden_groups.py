@@ -115,8 +115,8 @@ def calculate_area_and_perimeter(grid: Grid) -> list[Region]:
     visited = Grid.create_visited(grid.size, False)
     results = []
 
-    for r in range(grid.size.row):
-        for c in range(grid.size.col):
+    for r in range(grid.size.height):
+        for c in range(grid.size.width):
             coord = Coord(r, c)
             if not visited[coord]:
                 plant = grid[coord]
@@ -207,8 +207,8 @@ def calculate_area_and_sides(grid: Grid) -> list[tuple[str, int, int]]:
         return area, sides
 
     results = []
-    for r in range(grid.size.row):
-        for c in range(grid.size.col):
+    for r in range(grid.size.height):
+        for c in range(grid.size.width):
             coord = Coord(r, c)
             if not visited[coord]:
                 plant = grid[coord]
@@ -222,8 +222,8 @@ def calculate_total_price(grid: Grid) -> int:
     visited = Grid.create_visited(grid.size, False)
     total_price = 0
 
-    for r in range(grid.size.row):
-        for c in range(grid.size.col):
+    for r in range(grid.size.height):
+        for c in range(grid.size.width):
             coord = Coord(r, c)
             if not visited[coord]:
                 region_cells = find_region_cells(coord, grid, visited)

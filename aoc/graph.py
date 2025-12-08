@@ -108,6 +108,40 @@ def dfs(
     return None
 
 
+def _create_grid_search_functions(
+    grid: Grid,
+    end: Coord,
+    walkable_values: set[Any],
+) -> tuple[Callable[[Coord], list[Coord]], Callable[[Coord], bool]]:
+    """
+    Create neighbor and goal functions for grid pathfinding.
+
+    Shared logic extracted from bfs_grid_path and dfs_grid_path.
+
+    Args:
+        grid: Grid instance to search through
+        end: Goal coordinate
+        walkable_values: Set of grid values that can be traversed
+
+    Returns:
+        Tuple of (neighbors_func, goal_func) for use with generic search algorithms
+    """
+    def neighbors_func(coord: Coord) -> list[Coord]:
+        """Get valid neighboring coordinates in the grid."""
+        return [
+            neighbor
+            for direction in Coord.DIRECTIONS_CARDINAL
+            if (neighbor := coord + direction) in grid
+            and grid[neighbor] in walkable_values
+        ]
+
+    def goal_func(coord: Coord) -> bool:
+        """Check if we've reached the goal."""
+        return coord == end
+
+    return neighbors_func, goal_func
+
+
 def bfs_grid_path(
     grid: Grid,
     start: Coord,
@@ -138,20 +172,7 @@ def bfs_grid_path(
     Note:
         BFS guarantees the shortest path in unweighted graphs.
     """
-    def neighbors_func(coord: Coord) -> list[Coord]:
-        """Get valid neighboring coordinates in the grid."""
-        return [
-            neighbor
-            for direction in Coord.DIRECTIONS_CARDINAL
-            if (neighbor := coord + direction) in grid
-            and grid[neighbor] in walkable_values
-        ]
-
-    def goal_func(coord: Coord) -> bool:
-        """Check if we've reached the goal."""
-        return coord == end
-
-    # Use the generic bfs implementation
+    neighbors_func, goal_func = _create_grid_search_functions(grid, end, walkable_values)
     result = bfs(start, neighbors_func, goal_func)
     return result if isinstance(result, list) else []
 
@@ -188,20 +209,7 @@ def dfs_grid_path(
         This wrapper uses the generic dfs() implementation with parent tracking
         for efficient O(n) time and memory complexity.
     """
-    def neighbors_func(coord: Coord) -> list[Coord]:
-        """Get valid neighboring coordinates in the grid."""
-        return [
-            neighbor
-            for direction in Coord.DIRECTIONS_CARDINAL
-            if (neighbor := coord + direction) in grid
-            and grid[neighbor] in walkable_values
-        ]
-
-    def goal_func(coord: Coord) -> bool:
-        """Check if we've reached the goal."""
-        return coord == end
-
-    # Use the generic dfs implementation
+    neighbors_func, goal_func = _create_grid_search_functions(grid, end, walkable_values)
     result = dfs(start, neighbors_func, goal_func)
     return result if result is not None else []
 
