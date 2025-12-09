@@ -353,10 +353,7 @@ class Input:
         """
         if converter is None:
             return Grid([list(line) for line in self.as_lines()])
-        return Grid([
-            [converter(char) for char in line]
-            for line in self.as_lines()
-        ])
+        return Grid([[converter(char) for char in line] for line in self.as_lines()])
 
     def as_int_grid(self, empty_value: int = -1) -> Grid:
         """
@@ -373,16 +370,11 @@ class Input:
             Grid([[0, 1, 2], [3, 4, 5], [6, -1, 8]])
         """
         return self.as_conditional_grid(
-            check=str.isdigit,
-            converter=int,
-            empty_value=empty_value
+            check=str.isdigit, converter=int, empty_value=empty_value
         )
 
     def as_conditional_grid(
-        self,
-        check: callable,
-        converter: type,
-        empty_value: any = None
+        self, check: callable, converter: type, empty_value: any = None
     ) -> Grid:
         """
         Parse content as 2D grid with conditional conversion.
@@ -401,10 +393,12 @@ class Input:
             ... )
             Grid([[1, -1, 2], [3, -1, 4]])
         """
-        return Grid([
-            [converter(char) if check(char) else empty_value for char in line]
-            for line in self.as_lines()
-        ])
+        return Grid(
+            [
+                [converter(char) if check(char) else empty_value for char in line]
+                for line in self.as_lines()
+            ]
+        )
 
     def as_float_grid(self, empty_value: float = 0.0) -> Grid:
         """
@@ -420,13 +414,12 @@ class Input:
             >>> Input.from_string("1.5 2.7\\n3.2 4.8").as_float_grid()
             Grid([[1.5, 2.7], [3.2, 4.8]])
         """
+
         def is_float_char(c: str) -> bool:
-            return c.isdigit() or c == '.' or c == '-'
-        
+            return c.isdigit() or c == "." or c == "-"
+
         return self.as_conditional_grid(
-            check=is_float_char,
-            converter=float,
-            empty_value=empty_value
+            check=is_float_char, converter=float, empty_value=empty_value
         )
 
     def as_columns(
@@ -497,7 +490,9 @@ class Input:
 
         return dict(graph)
 
-    def as_delimited_lines(self, separator: str = ",", converter: type = int) -> list[list]:
+    def as_delimited_lines(
+        self, separator: str = ",", converter: type = int
+    ) -> list[list]:
         """
         Parse each line as delimited values.
 
@@ -536,15 +531,15 @@ class Input:
 
     def as_key_value_pairs(
         self,
-        key_type: type = int,
-        value_parser=None,
+        key_converter: type = int,
+        value_parser=extract_ints,
         separator: str = ":",
     ) -> list[tuple]:
         """
         Parse lines with "key: value" format.
 
         Args:
-            key_type: Type function for key (default: int)
+            key_converter: Type function for key (default: int)
             value_parser: Function to parse value side (default: extract_ints)
             separator: Delimiter between key and value (default: ":")
 
@@ -559,7 +554,7 @@ class Input:
 
             Custom value parser:
             >>> input = Input.from_string("test: hello world\\nfoo: bar baz")
-            >>> input.as_key_value_pairs(key_type=str, value_parser=str.split)
+            >>> input.as_key_value_pairs(key_converter=str, value_parser=str.split)
             [('test', ['hello', 'world']), ('foo', ['bar', 'baz'])]
 
             Single value per key:
@@ -567,55 +562,12 @@ class Input:
             >>> input.as_key_value_pairs(value_parser=int)
             [('x', 42), ('y', 99)]
         """
-        if value_parser is None:
-            value_parser = extract_ints
-
         result = []
         for line in self.parse(self._line_sep):
             key_str, value_str = line.split(separator, 1)
-            key = key_type(key_str.strip())
+            key = key_converter(key_str.strip())
             value = value_parser(value_str.strip())
             result.append((key, value))
-
-        return result
-
-    def as_structured_ints(self, ints_per_line: int) -> list[tuple[int, ...]]:
-        """
-        Extract all integers from each line using extract_ints().
-
-        Args:
-            ints_per_line: Expected number of integers per line (for validation)
-
-        Returns:
-            List of tuples, one per line with extracted integers
-
-        Raises:
-            ValueError: If any line doesn't have exactly ints_per_line integers
-
-        Examples:
-            Position/velocity format:
-            >>> input = Input.from_string("p=0,4 v=3,-3\\np=6,3 v=-1,-3")
-            >>> input.as_structured_ints(4)
-            [(0, 4, 3, -3), (6, 3, -1, -3)]
-
-            Coordinates with metadata:
-            >>> input = Input.from_string("x=10 y=20 id=1\\nx=30 y=40 id=2")
-            >>> input.as_structured_ints(3)
-            [(10, 20, 1), (30, 40, 2)]
-
-            Negative numbers supported:
-            >>> input = Input.from_string("p=100,351 v=-10,25")
-            >>> input.as_structured_ints(4)
-            [(100, 351, -10, 25)]
-        """
-        result = []
-        for line_num, line in enumerate(self.parse(self._line_sep), 1):
-            ints = extract_ints(line)
-            if len(ints) != ints_per_line:
-                raise ValueError(
-                    f"Line {line_num}: expected {ints_per_line} integers, got {len(ints)}: {line}"
-                )
-            result.append(tuple(ints))
 
         return result
 
@@ -647,12 +599,6 @@ class Input:
             >>> sections = input.as_sections(strip=False)
             >>> sections[0].content
             '  a  '
-
-            File-based usage:
-            >>> input = Input.from_file("data/05_puzzle_input")
-            >>> rules, updates = input.as_sections()
-            >>> rules.as_pipe_rules()
-            {47: [53], 97: [13, 61]}
         """
         parts = self.parse(self._section_sep, skip_empty=False)
         return [
@@ -661,82 +607,6 @@ class Input:
             )
             for s in parts
         ]
-
-    def as_pipe_rules(self, separator: str = "|") -> dict[int, list[int]]:
-        """
-        Parse ordering/dependency rules in "X|Y" format.
-
-        Args:
-            separator: Delimiter between rule parts (default: "|")
-
-        Returns:
-            Dictionary mapping each key to list of dependent values
-
-        Examples:
-            Ordering rules:
-            >>> input = Input.from_string("47|53\\n97|13\\n97|61")
-            >>> input.as_pipe_rules()
-            {47: [53], 97: [13, 61]}
-
-            Custom separator:
-            >>> input = Input.from_string("A->B\\nA->C\\nB->D")
-            >>> input.as_pipe_rules(separator="->")
-            {'A': ['B', 'C'], 'B': ['D']}
-
-            All rules in dict form:
-            >>> input = Input.from_string("1|2\\n1|3\\n2|4")
-            >>> rules = input.as_pipe_rules()
-            >>> rules[1]
-            [2, 3]
-        """
-        rules = defaultdict(list)
-        for line in self.as_lines():
-            key, value = line.split(separator)
-            # Try to convert to int, fall back to string
-            try:
-                key = int(key.strip())
-                value = int(value.strip())
-            except ValueError:
-                key = key.strip()
-                value = value.strip()
-            rules[key].append(value)
-
-        return dict(rules)
-
-    def as_regex_groups(self, pattern: str) -> list[tuple]:
-        """
-        Extract regex capture groups from each line.
-
-        Args:
-            pattern: Regular expression pattern with capture groups
-
-        Returns:
-            List of tuples containing captured groups from each line
-
-        Examples:
-            Position/velocity with named structure:
-            >>> input = Input.from_string("p=0,4 v=3,-3\\np=6,3 v=-1,-3")
-            >>> input.as_regex_groups(r"p=(-?\\d+),(-?\\d+) v=(-?\\d+),(-?\\d+)")
-            [('0', '4', '3', '-3'), ('6', '3', '-1', '-3')]
-
-            Extract words:
-            >>> input = Input.from_string("name: Alice age: 25\\nname: Bob age: 30")
-            >>> input.as_regex_groups(r"name: (\\w+) age: (\\d+)")
-            [('Alice', '25'), ('Bob', '30')]
-
-            Multiple patterns per line:
-            >>> input = Input.from_string("move 3 from 1 to 2\\nmove 5 from 3 to 1")
-            >>> input.as_regex_groups(r"move (\\d+) from (\\d+) to (\\d+)")
-            [('3', '1', '2'), ('5', '3', '1')]
-        """
-
-        result = []
-        for line in self.as_lines():
-            match = search(pattern, line)
-            if match:
-                result.append(match.groups())
-
-        return result
 
 
 __all__ = ["Input", "extract_ints", "extract_pattern", "parse"]
