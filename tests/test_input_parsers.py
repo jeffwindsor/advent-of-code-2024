@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from aoc import Input, extract_ints, extract_pattern
+from aoc import Input, extract_ints, extract_pattern, Coord
 
 
 
@@ -219,12 +219,12 @@ class TestComposition(unittest.TestCase):
 
 
 class TestCSVLinesInput(unittest.TestCase):
-    """Tests for the as_csv_lines() parser method."""
+    """Tests for the as_delimited_lines() parser method."""
 
     def test_default_comma_separated_integers(self):
         """Test parsing comma-separated integers (default behavior)."""
         parser = Input.from_string("75,47,61,53,29\n97,61,53,29,13\n75,29,13")
-        result = parser.as_csv_lines()
+        result = parser.as_delimited_lines()
 
         expected = [[75, 47, 61, 53, 29], [97, 61, 53, 29, 13], [75, 29, 13]]
         self.assertEqual(result, expected)
@@ -237,7 +237,7 @@ class TestCSVLinesInput(unittest.TestCase):
     def test_custom_separator_semicolon(self):
         """Test parsing with custom separator (semicolon)."""
         parser = Input.from_string("1;2;3\n4;5;6\n7;8;9")
-        result = parser.as_csv_lines(separator=";")
+        result = parser.as_delimited_lines(separator=";")
 
         expected = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
         self.assertEqual(result, expected)
@@ -245,7 +245,7 @@ class TestCSVLinesInput(unittest.TestCase):
     def test_custom_separator_pipe(self):
         """Test parsing with pipe separator."""
         parser = Input.from_string("10|20|30\n40|50|60")
-        result = parser.as_csv_lines(separator="|")
+        result = parser.as_delimited_lines(separator="|")
 
         expected = [[10, 20, 30], [40, 50, 60]]
         self.assertEqual(result, expected)
@@ -253,7 +253,7 @@ class TestCSVLinesInput(unittest.TestCase):
     def test_string_converter(self):
         """Test parsing with string converter."""
         parser = Input.from_string("a,b,c\nx,y,z\nfoo,bar,baz")
-        result = parser.as_csv_lines(converter=str)
+        result = parser.as_delimited_lines(converter=str)
 
         expected = [['a', 'b', 'c'], ['x', 'y', 'z'], ['foo', 'bar', 'baz']]
         self.assertEqual(result, expected)
@@ -266,7 +266,7 @@ class TestCSVLinesInput(unittest.TestCase):
     def test_float_converter(self):
         """Test parsing with float converter."""
         parser = Input.from_string("1.5,2.7,3.9\n4.2,5.8,6.1")
-        result = parser.as_csv_lines(converter=float)
+        result = parser.as_delimited_lines(converter=float)
 
         expected = [[1.5, 2.7, 3.9], [4.2, 5.8, 6.1]]
         self.assertEqual(result, expected)
@@ -277,7 +277,7 @@ class TestCSVLinesInput(unittest.TestCase):
     def test_single_value_per_line(self):
         """Test parsing lines with single values."""
         parser = Input.from_string("100\n200\n300")
-        result = parser.as_csv_lines()
+        result = parser.as_delimited_lines()
 
         expected = [[100], [200], [300]]
         self.assertEqual(result, expected)
@@ -285,7 +285,7 @@ class TestCSVLinesInput(unittest.TestCase):
     def test_empty_lines_skipped(self):
         """Test that empty lines are skipped (via as_lines behavior)."""
         parser = Input.from_string("1,2,3\n\n4,5,6\n\n7,8,9")
-        result = parser.as_csv_lines()
+        result = parser.as_delimited_lines()
 
         expected = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
         self.assertEqual(result, expected)
@@ -293,7 +293,7 @@ class TestCSVLinesInput(unittest.TestCase):
     def test_whitespace_handling(self):
         """Test that leading/trailing whitespace is handled."""
         parser = Input.from_string("  1,2,3  \n  4,5,6  ")
-        result = parser.as_csv_lines()
+        result = parser.as_delimited_lines()
 
         expected = [[1, 2, 3], [4, 5, 6]]
         self.assertEqual(result, expected)
@@ -301,19 +301,19 @@ class TestCSVLinesInput(unittest.TestCase):
     def test_variable_length_rows(self):
         """Test parsing rows with different numbers of values."""
         parser = Input.from_string("1,2,3,4,5\n6,7\n8,9,10")
-        result = parser.as_csv_lines()
+        result = parser.as_delimited_lines()
 
         expected = [[1, 2, 3, 4, 5], [6, 7], [8, 9, 10]]
         self.assertEqual(result, expected)
 
     def test_with_input_class(self):
-        """Test as_csv_lines() via Input class delegation."""
+        """Test as_delimited_lines() via Input class delegation."""
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
             f.write("10,20,30\n40,50,60")
             temp_path = f.name
 
         try:
-            result = Input(temp_path).as_csv_lines()
+            result = Input(temp_path).as_delimited_lines()
             expected = [[10, 20, 30], [40, 50, 60]]
             self.assertEqual(result, expected)
         finally:
@@ -323,7 +323,7 @@ class TestCSVLinesInput(unittest.TestCase):
         """Test with actual Day 5 puzzle data format (page updates)."""
         # Simulate Day 5 page updates section
         parser = Input.from_string("75,47,61,53,29\n97,61,53,29,13\n75,29,13")
-        result = parser.as_csv_lines()
+        result = parser.as_delimited_lines()
 
         self.assertEqual(len(result), 3)
         self.assertEqual(len(result[0]), 5)  # First update has 5 pages
@@ -333,7 +333,7 @@ class TestCSVLinesInput(unittest.TestCase):
         """Test with actual Day 18 puzzle data format (coordinate pairs)."""
         # Simulate Day 18 coordinate format
         parser = Input.from_string("5,4\n4,2\n4,5\n3,0\n2,1")
-        result = parser.as_csv_lines()
+        result = parser.as_delimited_lines()
 
         self.assertEqual(len(result), 5)
         self.assertEqual(len(result[0]), 2)  # Each coordinate has 2 values
@@ -617,11 +617,11 @@ class TestSectionsInput(unittest.TestCase):
         sections = parser.as_sections()
 
         # First section can be parsed as CSV
-        csv_data = sections[0].as_csv_lines()
+        csv_data = sections[0].as_delimited_lines()
         self.assertEqual(csv_data, [[1, 2, 3], [4, 5, 6]])
 
         # Second section can also be parsed
-        csv_data2 = sections[1].as_csv_lines()
+        csv_data2 = sections[1].as_delimited_lines()
         self.assertEqual(csv_data2, [[7, 8, 9]])
 
     def test_with_input_class(self):
@@ -1003,50 +1003,50 @@ class TestColumnsMethods(unittest.TestCase):
 class TestCoordPairsMethods(unittest.TestCase):
     """Tests for as_coord_pairs parsing method."""
 
-    def test_as_coord_pairs_basic(self):
-        """Test as_coord_pairs with comma-separated pairs."""
+    def test_as_coords_basic(self):
+        """Test as_coords with comma-separated pairs."""
         parser = Input.from_string("5,4\n4,2\n3,1")
-        result = parser.as_coord_pairs()
+        result = parser.as_coords()
 
         self.assertIsInstance(result, list)
         self.assertEqual(len(result), 3)
-        self.assertEqual(result[0], (5, 4))
-        self.assertEqual(result[1], (4, 2))
-        self.assertEqual(result[2], (3, 1))
+        self.assertEqual(result[0], Coord(5, 4))
+        self.assertEqual(result[1], Coord(4, 2))
+        self.assertEqual(result[2], Coord(3, 1))
 
-    def test_as_coord_pairs_custom_separator(self):
-        """Test as_coord_pairs with custom separator."""
+    def test_as_coords_custom_separator(self):
+        """Test as_coords with custom separator."""
         parser = Input.from_string("10:20\n30:40")
-        result = parser.as_coord_pairs(separator=":")
+        result = parser.as_coords(separator=":")
 
         self.assertEqual(len(result), 2)
-        self.assertEqual(result[0], (10, 20))
-        self.assertEqual(result[1], (30, 40))
+        self.assertEqual(result[0], Coord(10, 20))
+        self.assertEqual(result[1], Coord(30, 40))
 
-    def test_as_coord_pairs_negative_values(self):
-        """Test as_coord_pairs with negative coordinates."""
+    def test_as_coords_negative_values(self):
+        """Test as_coords with negative coordinates."""
         parser = Input.from_string("-5,10\n20,-30")
-        result = parser.as_coord_pairs()
+        result = parser.as_coords()
 
-        self.assertEqual(result[0], (-5, 10))
-        self.assertEqual(result[1], (20, -30))
+        self.assertEqual(result[0], Coord(-5, 10))
+        self.assertEqual(result[1], Coord(20, -30))
 
-    def test_as_coord_pairs_single_pair(self):
-        """Test as_coord_pairs with single coordinate pair."""
+    def test_as_coords_single_pair(self):
+        """Test as_coords with single coordinate pair."""
         parser = Input.from_string("100,200")
-        result = parser.as_coord_pairs()
+        result = parser.as_coords()
 
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0], (100, 200))
+        self.assertEqual(result[0], Coord(100, 200))
 
 
 class TestGraphEdgesMethods(unittest.TestCase):
     """Tests for as_graph_edges parsing method."""
 
-    def test_as_graph_edges_bidirectional_default(self):
-        """Test as_graph_edges with default bidirectional edges."""
+    def test_as_adjacency_list_bidirectional_default(self):
+        """Test as_adjacency_list with default bidirectional edges."""
         parser = Input.from_string("a-b\nc-d")
-        result = parser.as_graph_edges()
+        result = parser.as_adjacency_list()
 
         self.assertIsInstance(result, dict)
         # Bidirectional: both directions should exist
@@ -1055,28 +1055,28 @@ class TestGraphEdgesMethods(unittest.TestCase):
         self.assertIn('d', result['c'])
         self.assertIn('c', result['d'])
 
-    def test_as_graph_edges_directional(self):
-        """Test as_graph_edges with directional edges."""
+    def test_as_adjacency_list_directional(self):
+        """Test as_adjacency_list with directional edges."""
         parser = Input.from_string("a-b\nc-d")
-        result = parser.as_graph_edges(directed=True)
+        result = parser.as_adjacency_list(directed=True)
 
         self.assertIsInstance(result, dict)
         # Directional: only one direction
         self.assertIn('b', result['a'])
         self.assertNotIn('a', result.get('b', set()))
 
-    def test_as_graph_edges_custom_separator(self):
-        """Test as_graph_edges with custom separator."""
+    def test_as_adjacency_list_custom_separator(self):
+        """Test as_adjacency_list with custom separator."""
         parser = Input.from_string("a:b\nc:d")
-        result = parser.as_graph_edges(separator=":")
+        result = parser.as_adjacency_list(separator=":")
 
         self.assertIn('b', result['a'])
         self.assertIn('a', result['b'])
 
-    def test_as_graph_edges_multiple_connections(self):
-        """Test as_graph_edges with multiple connections to same node."""
+    def test_as_adjacency_list_multiple_connections(self):
+        """Test as_adjacency_list with multiple connections to same node."""
         parser = Input.from_string("a-b\na-c\na-d")
-        result = parser.as_graph_edges()
+        result = parser.as_adjacency_list()
 
         self.assertEqual(len(result['a']), 3)
         self.assertIn('b', result['a'])
@@ -1090,7 +1090,7 @@ class TestCSVLinesIntegration(unittest.TestCase):
     def test_csv_multi_values_per_line(self):
         """Integration test: Multiple comma-separated values per line (variable length)."""
         section1, section2 = Input("tests/data/test_csv_multi_values_per_line").as_sections()
-        page_updates = section2.as_csv_lines()
+        page_updates = section2.as_delimited_lines()
 
         # Verify we got valid data
         self.assertIsInstance(page_updates, list)
@@ -1109,7 +1109,7 @@ class TestCSVLinesIntegration(unittest.TestCase):
 
     def test_csv_pairs_per_line(self):
         """Integration test: Comma-separated pairs per line (fixed 2 values)."""
-        coords = Input("tests/data/test_csv_pairs_per_line").as_csv_lines()
+        coords = Input("tests/data/test_csv_pairs_per_line").as_delimited_lines()
 
         # Verify we got valid coordinate pairs
         self.assertIsInstance(coords, list)

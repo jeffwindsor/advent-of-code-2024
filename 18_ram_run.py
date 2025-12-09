@@ -2,7 +2,7 @@ from aoc import Input, run, TestCase, Coord, Dimension, Grid, bfs
 
 
 def parse_input(data_file):
-    return Input(data_file).as_coord_pairs()
+    return Input(data_file).as_coords()
 
 
 def simulate_memory_space(grid_size, byte_positions, total_bytes):
@@ -11,8 +11,7 @@ def simulate_memory_space(grid_size, byte_positions, total_bytes):
 
     # Corrupt the grid based on the incoming bytes
     for i in range(min(total_bytes, len(byte_positions))):
-        x, y = byte_positions[i]
-        coord = Coord(y, x)  # Convert (x,y) to (row, col)
+        coord = byte_positions[i]
         if coord in grid:
             grid[coord] = "#"
 
@@ -71,8 +70,8 @@ def find_blocking_byte(grid_size, byte_positions):
             right = mid - 1
 
     if result is not None:
-        x, y = byte_positions[result]
-        return f"{x},{y}"
+        coord = byte_positions[result]
+        return f"{coord.row},{coord.col}"
 
     return None
 
