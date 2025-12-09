@@ -363,7 +363,7 @@ class TestKeyValuePairsInput(unittest.TestCase):
     def test_custom_separator(self):
         """Test with custom separator (equals sign)."""
         parser = Input.from_string("x = 1 2 3\ny = 4 5 6")
-        result = parser.as_key_value_pairs(key_type=str, separator="=")
+        result = parser.as_key_value_pairs(key_converter=str, separator="=")
 
         expected = [('x', [1, 2, 3]), ('y', [4, 5, 6])]
         self.assertEqual(result, expected)
@@ -371,7 +371,7 @@ class TestKeyValuePairsInput(unittest.TestCase):
     def test_string_keys(self):
         """Test with string keys instead of integers."""
         parser = Input.from_string("test: 10 20\nfoo: 30 40")
-        result = parser.as_key_value_pairs(key_type=str)
+        result = parser.as_key_value_pairs(key_converter=str)
 
         expected = [('test', [10, 20]), ('foo', [30, 40])]
         self.assertEqual(result, expected)
@@ -380,7 +380,7 @@ class TestKeyValuePairsInput(unittest.TestCase):
     def test_single_value_parser(self):
         """Test with custom value parser that returns single value."""
         parser = Input.from_string("x: 42\ny: 99\nz: 123")
-        result = parser.as_key_value_pairs(key_type=str, value_parser=int)
+        result = parser.as_key_value_pairs(key_converter=str, value_parser=int)
 
         expected = [('x', 42), ('y', 99), ('z', 123)]
         self.assertEqual(result, expected)
@@ -390,7 +390,7 @@ class TestKeyValuePairsInput(unittest.TestCase):
         """Test with custom value parser (split on spaces)."""
         parser = Input.from_string("test: hello world\nfoo: bar baz qux")
         result = parser.as_key_value_pairs(
-            key_type=str,
+            key_converter=str,
             value_parser=str.split
         )
 
@@ -450,112 +450,6 @@ class TestKeyValuePairsIntegration(unittest.TestCase):
         # Verify expected data (from Day 7 example)
         self.assertEqual(result[0], (190, [10, 19]))
         self.assertEqual(result[1], (3267, [81, 40, 27]))
-
-
-
-
-class TestStructuredIntsInput(unittest.TestCase):
-    """Tests for the as_structured_ints() parser method."""
-
-    def test_position_velocity_format(self):
-        """Test parsing position/velocity format with 4 ints per line."""
-        parser = Input.from_string("p=0,4 v=3,-3\np=6,3 v=-1,-3\np=10,3 v=-1,2")
-        result = parser.as_structured_ints(4)
-
-        expected = [(0, 4, 3, -3), (6, 3, -1, -3), (10, 3, -1, 2)]
-        self.assertEqual(result, expected)
-
-        # Verify types
-        self.assertIsInstance(result, list)
-        self.assertIsInstance(result[0], tuple)
-        self.assertIsInstance(result[0][0], int)
-
-    def test_negative_numbers(self):
-        """Test that negative numbers are extracted correctly."""
-        parser = Input.from_string("p=100,351 v=-10,25\np=-5,-10 v=20,-30")
-        result = parser.as_structured_ints(4)
-
-        expected = [(100, 351, -10, 25), (-5, -10, 20, -30)]
-        self.assertEqual(result, expected)
-
-    def test_coordinate_triplets(self):
-        """Test parsing with 3 integers per line."""
-        parser = Input.from_string("x=10 y=20 id=1\nx=30 y=40 id=2\nx=50 y=60 id=3")
-        result = parser.as_structured_ints(3)
-
-        expected = [(10, 20, 1), (30, 40, 2), (50, 60, 3)]
-        self.assertEqual(result, expected)
-
-    def test_single_int_per_line(self):
-        """Test parsing with 1 integer per line."""
-        parser = Input.from_string("value: 42\ncount: 99\ntotal: 123")
-        result = parser.as_structured_ints(1)
-
-        expected = [(42,), (99,), (123,)]
-        self.assertEqual(result, expected)
-
-    def test_validation_error_too_few_ints(self):
-        """Test that ValueError is raised if line has too few integers."""
-        parser = Input.from_string("p=0,4 v=3")  # Only 3 ints, expecting 4
-        with self.assertRaises(ValueError) as context:
-            parser.as_structured_ints(4)
-
-        self.assertIn("expected 4 integers, got 3", str(context.exception))
-        self.assertIn("Line 1", str(context.exception))
-
-    def test_validation_error_too_many_ints(self):
-        """Test that ValueError is raised if line has too many integers."""
-        parser = Input.from_string("1 2 3 4 5")  # 5 ints, expecting 3
-        with self.assertRaises(ValueError) as context:
-            parser.as_structured_ints(3)
-
-        self.assertIn("expected 3 integers, got 5", str(context.exception))
-
-    def test_mixed_text_and_numbers(self):
-        """Test extraction from lines with mixed text and numbers."""
-        parser = Input.from_string("robot at position (10, 20) moving velocity (-5, 3)")
-        result = parser.as_structured_ints(4)
-
-        expected = [(10, 20, -5, 3)]
-        self.assertEqual(result, expected)
-
-    def test_with_input_class(self):
-        """Test as_structured_ints() via Input class delegation."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
-            f.write("p=1,2 v=3,4\np=5,6 v=7,8")
-            temp_path = f.name
-
-        try:
-            result = Input(temp_path).as_structured_ints(4)
-            expected = [(1, 2, 3, 4), (5, 6, 7, 8)]
-            self.assertEqual(result, expected)
-        finally:
-            Path(temp_path).unlink()
-
-
-class TestStructuredIntsIntegration(unittest.TestCase):
-    """Integration tests for structured ints parsing scenarios."""
-
-    def test_structured_ints_position_velocity(self):
-        """Integration test: Extract position/velocity format (4 ints per line)."""
-        result = Input("tests/data/test_structured_ints_position_velocity").as_structured_ints(4)
-
-        # Verify we got valid data
-        self.assertIsInstance(result, list)
-        self.assertGreater(len(result), 0)
-        self.assertIsInstance(result[0], tuple)
-
-        # Each tuple should have exactly 4 integers
-        for tup in result:
-            self.assertEqual(len(tup), 4)
-            for val in tup:
-                self.assertIsInstance(val, int)
-
-        # Verify expected data (from Day 14 example)
-        self.assertEqual(result[0], (0, 4, 3, -3))
-        self.assertEqual(result[1], (6, 3, -1, -3))
-
-
 
 
 class TestSectionsInput(unittest.TestCase):
@@ -666,216 +560,6 @@ class TestSectionsIntegration(unittest.TestCase):
         lines3 = sections[2].as_lines()
         self.assertEqual(len(lines3), 3)
         self.assertIn("Section 3", lines3[0])
-
-
-
-
-class TestPipeRulesInput(unittest.TestCase):
-    """Tests for the as_pipe_rules() parser method."""
-
-    def test_basic_ordering_rules(self):
-        """Test parsing basic pipe-separated ordering rules."""
-        parser = Input.from_string("47|53\n97|13\n97|61")
-        result = parser.as_pipe_rules()
-
-        expected = {47: [53], 97: [13, 61]}
-        self.assertEqual(result, expected)
-
-        # Verify types
-        self.assertIsInstance(result, dict)
-        self.assertIsInstance(result[47], list)
-        self.assertIsInstance(result[47][0], int)
-
-    def test_multiple_dependencies(self):
-        """Test keys with multiple dependent values."""
-        parser = Input.from_string("1|2\n1|3\n1|4\n2|5\n2|6")
-        result = parser.as_pipe_rules()
-
-        expected = {1: [2, 3, 4], 2: [5, 6]}
-        self.assertEqual(result, expected)
-
-    def test_single_dependency_each(self):
-        """Test each key having single dependency."""
-        parser = Input.from_string("10|20\n30|40\n50|60")
-        result = parser.as_pipe_rules()
-
-        expected = {10: [20], 30: [40], 50: [60]}
-        self.assertEqual(result, expected)
-
-    def test_custom_separator_arrow(self):
-        """Test with custom separator (arrow)."""
-        parser = Input.from_string("A->B\nA->C\nB->D")
-        result = parser.as_pipe_rules(separator="->")
-
-        expected = {'A': ['B', 'C'], 'B': ['D']}
-        self.assertEqual(result, expected)
-        self.assertIsInstance(result['A'][0], str)
-
-    def test_custom_separator_colon(self):
-        """Test with colon separator."""
-        parser = Input.from_string("1:2\n1:3\n2:4")
-        result = parser.as_pipe_rules(separator=":")
-
-        expected = {1: [2, 3], 2: [4]}
-        self.assertEqual(result, expected)
-
-    def test_whitespace_handling(self):
-        """Test that whitespace around values is handled."""
-        parser = Input.from_string("  1  |  2  \n  3  |  4  ")
-        result = parser.as_pipe_rules()
-
-        expected = {1: [2], 3: [4]}
-        self.assertEqual(result, expected)
-
-    def test_preserves_order(self):
-        """Test that dependencies preserve insertion order."""
-        parser = Input.from_string("1|5\n1|3\n1|9\n1|1")
-        result = parser.as_pipe_rules()
-
-        # Should maintain order: 5, 3, 9, 1
-        self.assertEqual(result[1], [5, 3, 9, 1])
-
-    def test_with_input_class(self):
-        """Test as_pipe_rules() via Input class delegation."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
-            f.write("10|20\n10|30\n20|40")
-            temp_path = f.name
-
-        try:
-            result = Input(temp_path).as_pipe_rules()
-            expected = {10: [20, 30], 20: [40]}
-            self.assertEqual(result, expected)
-        finally:
-            Path(temp_path).unlink()
-
-
-class TestPipeRulesIntegration(unittest.TestCase):
-    """Integration tests for pipe rules parsing scenarios."""
-
-    def test_pipe_rules_ordering(self):
-        """Integration test: Pipe-separated ordering rules (page dependencies)."""
-        result = Input("tests/data/test_pipe_rules_ordering").as_pipe_rules()
-
-        # Verify we got valid data
-        self.assertIsInstance(result, dict)
-        self.assertGreater(len(result), 0)
-
-        # All keys and values should be integers
-        for key, values in result.items():
-            self.assertIsInstance(key, int)
-            self.assertIsInstance(values, list)
-            for val in values:
-                self.assertIsInstance(val, int)
-
-        # Verify expected data (from Day 5 example)
-        self.assertIn(47, result)
-        self.assertEqual(result[47], [53])
-        self.assertIn(97, result)
-        self.assertIn(13, result[97])
-
-
-
-
-class TestRegexGroupsInput(unittest.TestCase):
-    """Tests for the as_regex_groups() parser method."""
-
-    def test_position_velocity_pattern(self):
-        """Test extracting position/velocity with regex groups."""
-        parser = Input.from_string("p=0,4 v=3,-3\np=6,3 v=-1,-3")
-        result = parser.as_regex_groups(r"p=(-?\d+),(-?\d+) v=(-?\d+),(-?\d+)")
-
-        expected = [('0', '4', '3', '-3'), ('6', '3', '-1', '-3')]
-        self.assertEqual(result, expected)
-
-        # Verify types
-        self.assertIsInstance(result, list)
-        self.assertIsInstance(result[0], tuple)
-        self.assertIsInstance(result[0][0], str)  # Groups are strings
-
-    def test_named_fields_extraction(self):
-        """Test extracting named fields."""
-        parser = Input.from_string("name: Alice age: 25\nname: Bob age: 30")
-        result = parser.as_regex_groups(r"name: (\w+) age: (\d+)")
-
-        expected = [('Alice', '25'), ('Bob', '30')]
-        self.assertEqual(result, expected)
-
-    def test_command_parsing(self):
-        """Test parsing command-style input."""
-        parser = Input.from_string("move 3 from 1 to 2\nmove 5 from 3 to 1")
-        result = parser.as_regex_groups(r"move (\d+) from (\d+) to (\d+)")
-
-        expected = [('3', '1', '2'), ('5', '3', '1')]
-        self.assertEqual(result, expected)
-
-    def test_single_group(self):
-        """Test pattern with single capture group."""
-        parser = Input.from_string("value: 42\nvalue: 99\nvalue: 123")
-        result = parser.as_regex_groups(r"value: (\d+)")
-
-        expected = [('42',), ('99',), ('123',)]
-        self.assertEqual(result, expected)
-
-    def test_no_matches_skipped(self):
-        """Test that lines without matches are skipped."""
-        parser = Input.from_string("match: 1\nnot a match\nmatch: 2")
-        result = parser.as_regex_groups(r"match: (\d+)")
-
-        expected = [('1',), ('2',)]
-        self.assertEqual(result, expected)
-
-    def test_complex_pattern(self):
-        """Test complex pattern with multiple group types."""
-        parser = Input.from_string("id=10 name=test value=3.14\nid=20 name=prod value=2.71")
-        result = parser.as_regex_groups(r"id=(\d+) name=(\w+) value=([\d.]+)")
-
-        expected = [('10', 'test', '3.14'), ('20', 'prod', '2.71')]
-        self.assertEqual(result, expected)
-
-    def test_negative_numbers(self):
-        """Test pattern capturing negative numbers."""
-        parser = Input.from_string("x=-5 y=10\nx=3 y=-7")
-        result = parser.as_regex_groups(r"x=(-?\d+) y=(-?\d+)")
-
-        expected = [('-5', '10'), ('3', '-7')]
-        self.assertEqual(result, expected)
-
-    def test_with_input_class(self):
-        """Test as_regex_groups() via Input class delegation."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
-            f.write("a=1 b=2\na=3 b=4")
-            temp_path = f.name
-
-        try:
-            result = Input(temp_path).as_regex_groups(r"a=(\d+) b=(\d+)")
-            expected = [('1', '2'), ('3', '4')]
-            self.assertEqual(result, expected)
-        finally:
-            Path(temp_path).unlink()
-
-
-class TestRegexGroupsIntegration(unittest.TestCase):
-    """Integration tests for regex groups parsing scenarios."""
-
-    def test_regex_groups_position_velocity(self):
-        """Integration test: Extract position/velocity using regex capture groups."""
-        pattern = r"p=(-?\d+),(-?\d+) v=(-?\d+),(-?\d+)"
-        result = Input("tests/data/test_regex_groups_position_velocity").as_regex_groups(pattern)
-
-        # Verify we got valid data
-        self.assertIsInstance(result, list)
-        self.assertGreater(len(result), 0)
-        self.assertIsInstance(result[0], tuple)
-
-        # Each tuple should have exactly 4 captured groups (strings)
-        for tup in result:
-            self.assertEqual(len(tup), 4)
-            for val in tup:
-                self.assertIsInstance(val, str)
-
-        # Verify expected data (from Day 14 example)
-        self.assertEqual(result[0], ('0', '4', '3', '-3'))
-        self.assertEqual(result[1], ('6', '3', '-1', '-3'))
 
 
 class TestGridMethods(unittest.TestCase):
