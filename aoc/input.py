@@ -112,6 +112,7 @@ Input
 
 from collections import defaultdict
 from re import findall, error, search
+from .coord import Coord
 from .grid import Grid
 
 
@@ -331,18 +332,31 @@ class Input:
         """
         return self.parse(self._line_sep, skip_empty=skip_empty)
 
-    def as_grid(self) -> Grid:
+    def as_grid(self, converter: type | None = None) -> Grid:
         """
         Parse content as 2D character grid.
+
+        Args:
+            converter: Optional type function to apply to each character
 
         Returns:
             Grid instance wrapping character grid
 
-        Example:
-            >>> Input.from_string("ABC\\nDEF").as_char_grid()
+        Examples:
+            Default (character grid):
+            >>> Input.from_string("ABC\\nDEF").as_grid()
+            Grid([['A', 'B', 'C'], ['D', 'E', 'F']])
+
+            With converter:
+            >>> Input.from_string("abc\\ndef").as_grid(converter=str.upper)
             Grid([['A', 'B', 'C'], ['D', 'E', 'F']])
         """
-        return Grid([list(line) for line in self.as_lines()])
+        if converter is None:
+            return Grid([list(line) for line in self.as_lines()])
+        return Grid([
+            [converter(char) for char in line]
+            for line in self.as_lines()
+        ])
 
     def as_int_grid(self, empty_value: int = -1) -> Grid:
         """
@@ -358,11 +372,61 @@ class Input:
             >>> Input.from_string("012\\n345\\n6.8").as_int_grid()
             Grid([[0, 1, 2], [3, 4, 5], [6, -1, 8]])
         """
-        return Grid(
-            [
-                [int(char) if char.isdigit() else empty_value for char in line]
-                for line in self.as_lines()
-            ]
+        return self.as_conditional_grid(
+            check=str.isdigit,
+            converter=int,
+            empty_value=empty_value
+        )
+
+    def as_conditional_grid(
+        self,
+        check: callable,
+        converter: type,
+        empty_value: any = None
+    ) -> Grid:
+        """
+        Parse content as 2D grid with conditional conversion.
+
+        Args:
+            check: Function to test each character (returns bool)
+            converter: Type function to apply when check passes
+            empty_value: Value to use when check fails
+
+        Returns:
+            Grid instance with conditionally converted values
+
+        Example:
+            >>> Input.from_string("1a2\\n3b4").as_conditional_grid(
+            ...     check=str.isdigit, converter=int, empty_value=-1
+            ... )
+            Grid([[1, -1, 2], [3, -1, 4]])
+        """
+        return Grid([
+            [converter(char) if check(char) else empty_value for char in line]
+            for line in self.as_lines()
+        ])
+
+    def as_float_grid(self, empty_value: float = 0.0) -> Grid:
+        """
+        Parse content as 2D float grid.
+
+        Args:
+            empty_value: Value for non-numeric characters (default: 0.0)
+
+        Returns:
+            Grid instance wrapping float grid
+
+        Example:
+            >>> Input.from_string("1.5 2.7\\n3.2 4.8").as_float_grid()
+            Grid([[1.5, 2.7], [3.2, 4.8]])
+        """
+        def is_float_char(c: str) -> bool:
+            return c.isdigit() or c == '.' or c == '-'
+        
+        return self.as_conditional_grid(
+            check=is_float_char,
+            converter=float,
+            empty_value=empty_value
         )
 
     def as_columns(
@@ -386,30 +450,30 @@ class Input:
         rows = [list(map(converter, line.split(separator))) for line in lines]
         return list(zip(*rows))
 
-    def as_coord_pairs(self, separator: str = ",") -> list[tuple[int, int]]:
+    def as_coords(self, separator: str = ",") -> list[Coord]:
         """
-        Parse content as coordinate pairs.
+        Parse content as coordinates.
 
         Args:
-            separator: Delimiter between x and y (default: ",")
+            separator: Delimiter between row and col (default: ",")
 
         Returns:
-            List of (x, y) integer tuples
+            List of Coord objects
 
         Example:
-            >>> Input.from_string("1,2\\n3,4\\n5,6").as_coord_pairs()
-            [(1, 2), (3, 4), (5, 6)]
+            >>> Input.from_string("1,2\\n3,4\\n5,6").as_coords()
+            [Coord(1, 2), Coord(3, 4), Coord(5, 6)]
         """
         return [
-            (int(x), int(y))
-            for x, y in (line.split(separator) for line in self.as_lines())
+            Coord(int(row), int(col))
+            for row, col in (line.split(separator) for line in self.as_lines())
         ]
 
-    def as_graph_edges(
+    def as_adjacency_list(
         self, separator: str = "-", directed: bool = False
     ) -> dict[str, set[str]]:
         """
-        Parse content as graph edges (adjacency list).
+        Parse content as graph adjacency list.
 
         Args:
             separator: Delimiter between nodes (default: "-")
@@ -419,7 +483,7 @@ class Input:
             Dictionary mapping each node to set of connected nodes
 
         Example:
-            >>> Input.from_string("A-B\\nB-C\\nA-C").as_graph_edges()
+            >>> Input.from_string("A-B\\nB-C\\nA-C").as_adjacency_list()
             {'A': {'B', 'C'}, 'B': {'A', 'C'}, 'C': {'B', 'A'}}
         """
         graph = defaultdict(set)
@@ -433,9 +497,9 @@ class Input:
 
         return dict(graph)
 
-    def as_csv_lines(self, separator: str = ",", converter: type = int) -> list[list]:
+    def as_delimited_lines(self, separator: str = ",", converter: type = int) -> list[list]:
         """
-        Parse each line as comma-separated values.
+        Parse each line as delimited values.
 
         Args:
             separator: Delimiter between values (default: ",")
@@ -447,22 +511,22 @@ class Input:
         Examples:
             Default usage (comma-separated integers):
             >>> input = Input.from_string("75,47,61\\n97,61,53\\n75,29")
-            >>> input.as_csv_lines()
+            >>> input.as_delimited_lines()
             [[75, 47, 61], [97, 61, 53], [75, 29]]
 
             Custom separator:
             >>> input = Input.from_string("1;2;3\\n4;5;6")
-            >>> input.as_csv_lines(separator=";")
+            >>> input.as_delimited_lines(separator=";")
             [[1, 2, 3], [4, 5, 6]]
 
             String values:
             >>> input = Input.from_string("a,b,c\\nx,y,z")
-            >>> input.as_csv_lines(converter=str)
+            >>> input.as_delimited_lines(converter=str)
             [['a', 'b', 'c'], ['x', 'y', 'z']]
 
             Float values:
             >>> input = Input.from_string("1.5,2.7\\n3.2,4.8")
-            >>> input.as_csv_lines(converter=float)
+            >>> input.as_delimited_lines(converter=float)
             [[1.5, 2.7], [3.2, 4.8]]
         """
         return [

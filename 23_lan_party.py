@@ -29,7 +29,7 @@ def contains_chiefs_computer(network):
 
 
 def count_chiefs_networks(data_file):
-    graph = Input(data_file).as_graph_edges()
+    graph = Input(data_file).as_adjacency_list()
     networks = find_all_networks(graph)
     count = sum(contains_chiefs_computer(network) for network in networks)
     return count
@@ -40,7 +40,7 @@ def find_largest_clique(data_file):
     Find the largest fully-connected group of computers and return the password.
     Returns computers sorted alphabetically, joined with commas.
     """
-    graph = Input(data_file).as_graph_edges()
+    graph = Input(data_file).as_adjacency_list()
     largest_clique = find_max_clique(graph)
     password = ",".join(sorted(largest_clique))
     return password
