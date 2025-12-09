@@ -1,93 +1,405 @@
+"""
+Input parsing utilities for Advent of Code puzzles.
+
+This module provides flexible parsing for common Advent of Code input patterns
+through the Input class, which handles both file-based and string-based parsing.
+
+Supported Parsing Scenarios
+----------------------------
+
+**Single line of integers** - ``parse_lines(int)``
+    Parse each line as a single integer using parse_lines with int converter.
+
+    Example: ``"123\\n456\\n789"`` → ``[123, 456, 789]``
+
+**Column-based parsing** - ``as_columns()``
+    Parse whitespace-separated values into columns (transpose rows to columns).
+
+    Example: ``"3   4\\n8   10"`` → ``[(3, 8), (4, 10)]``
+
+**Line-by-line data** - ``as_lines()``
+    Split content into list of strings, one per line.
+
+    Example: ``"line one\\nline two\\nline three"`` → ``['line one', 'line two', 'line three']``
+
+**Character grid** - ``as_char_grid()``, ``as_grid()``
+    Parse content as 2D array of characters. Use ``as_grid()`` for Grid wrapper with coordinate access.
+
+    Example: ``"XMAS\\nMASX"`` → ``[['X', 'M', 'A', 'S'], ['M', 'A', 'S', 'X']]``
+
+**Numeric grid** - ``as_int_grid()``
+    Parse digit characters into 2D integer array (non-digits become -1 by default).
+
+    Example: ``"0123\\n4567\\n89.."`` → ``[[0,1,2,3], [4,5,6,7], [8,9,-1,-1]]``
+
+**Coordinate pairs** - ``as_coord_pairs()``
+    Parse comma-separated coordinate pairs into list of (x, y) tuples.
+
+    Example: ``"6,1\\n8,3\\n12,5"`` → ``[(6, 1), (8, 3), (12, 5)]``
+
+**Graph edges** - ``as_graph_edges()``
+    Parse node connections into adjacency dictionary (undirected by default).
+
+    Example: ``"kh-tc\\ntc-wh\\nwh-yn"`` → ``{'kh': {'tc'}, 'tc': {'kh', 'wh'}, ...}``
+
+**Dense single-line string** - ``.content``
+    Access raw content string for character-by-character processing.
+
+    Example: ``"2333133121414131402"`` → raw string
+
+**Key-value pairs** - ``as_key_value_pairs()``
+    Parse colon-separated key-value format (values default to list of integers).
+
+    Example: ``"190: 10 19\\n3267: 81 40 27"`` → ``[(190, [10, 19]), (3267, [81, 40, 27])]``
+
+**Pipe-separated ordering rules** - ``as_pipe_rules()``
+    Parse ordering/dependency rules in "X|Y" format into dictionary.
+
+    Example: ``"47|53\\n97|13\\n75|29"`` → ``{47: [53], 97: [13], 75: [29]}``
+
+**Comma-separated values per line** - ``as_csv_lines()``
+    Parse each line as comma-separated values (default: integers).
+
+    Example: ``"75,47,61,53,29\\n97,61,53,29,13"`` → ``[[75,47,61,53,29], [97,61,53,29,13]]``
+
+**Multi-pattern regex extractor** - ``as_regex_groups()``
+    Extract regex capture groups from each line.
+
+    Example: ``"p=100,351 v=-10,25\\np=50,100 v=5,-3"`` → ``[('100','351','-10','25'), ('50','100','5','-3')]``
+
+**Structured integers extractor** - ``as_structured_ints()``
+    Extract all integers from complex text using regex (validates count per line).
+
+    Example: ``"p=100,351 v=-10,25"`` → ``(100, 351, -10, 25)``
+
+**Multi-section split** - ``as_sections()``
+    Split content on blank lines into list of Input objects.
+
+    Example: ``"sec1\\n\\nsec2\\n\\nsec3"`` → ``[Input('sec1'), Input('sec2'), Input('sec3')]``
+
+    Two sections: ``part1, part2 = input.as_sections()`` unpacks directly
+
+Usage Examples
+--------------
+
+File-based parsing::
+
+    from aoc import Input
+
+    # Read and parse file
+    input = Input("data/05_puzzle_input")
+    lines = input.as_lines()
+
+    # Or use factory method explicitly
+    input = Input.from_file("data/05_puzzle_input")
+
+    # Split into two sections
+    rules, updates = input.as_sections()
+
+String-based parsing::
+
+    from aoc import Input
+
+    # Parse string content
+    input = Input.from_string("1,2,3\\n4,5,6")
+    data = input.as_csv_lines()  # [[1, 2, 3], [4, 5, 6]]
+
+Classes
+-------
+Input
+    Flexible text parser with composable methods for file or string content
+"""
+
 from collections import defaultdict
-from re import findall
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from .grid import Grid
-
-# Input and Parsing Scenarios:
-#
-#    Single line of integers - as_ints()
-#       - Example: "123\n456\n789" → parse each line as single integer
-#    Column-based parsing - as_columns()
-#       - Example: "3   4\n8   10" → parse aligned columns into separate lists
-#    Line-by-line data - as_lines()
-#       - Example: "line one\nline two\nline three" → list of string lines
-#    Character grid - as_char_grid(), as_grid()
-#       - Example: "XMAS\nMASX" → 2D array of characters
-#    Numeric grid - as_int_grid()
-#       - Example: "0123\n4567\n89.." → 2D array of digits (. becomes -1)
-#    Two-part split - as_two_parts()
-#       - Example: "section1\ndata\n\nsection2\ndata" → split on blank line into two Parser objects
-#    Coordinate pairs - as_coord_pairs()
-#       - Example: "6,1\n8,3\n12,5" → list of (x,y) tuples
-#    Graph edges - as_graph_edges()
-#       - Example: "kh-tc\ntc-wh\nwh-yn" → adjacency dictionary {node: set(neighbors)}
-#    Dense single-line string - .content
-#       - Example: "2333133121414131402" → raw string for character-by-character processing
-#    Key-Value pairs - as_key_value_pairs()
-#       - Example: "190: 10 19\n3267: 81 40 27" → parse colon-separated key and values
-#    Pipe-separated ordering rules - as_pipe_rules()
-#       - Example: "47|53\n97|13\n75|29" → ordering rules dictionary {key: [dependent_values]}
-#    Comma-separated values per line - as_csv_lines()
-#       - Example: "75,47,61,53,29\n97,61,53,29,13" → list of integer lists per line
-#    Multi-pattern regex extractor - as_regex_groups()
-#       - Example: "p=100,351 v=-10,25\np=50,100 v=5,-3" → extract regex capture groups from each line
-#    Structured integers extractor - as_structured_ints()
-#       - Example: "p=100,351 v=-10,25" → extract all integers from complex text: (100, 351, -10, 25)
-#    Multi-section split - as_sections()
-#       - Example: "sec1\n\nsec2\n\nsec3" → split on blank lines into N Parser objects (generalizes as_two_parts())
+from re import findall, error, search
+from .grid import Grid
 
 
-def extract_ints(text: str) -> list[int]:
-    return list(map(int, findall(r"-?\d+", text)))
+def extract_ints(text: str, pattern: str = r"-?\d+") -> list[int]:
+    """
+    Extract integers from text using regex pattern.
+
+    Args:
+        text: Text to extract from
+        pattern: Regex pattern (default: matches integers including negatives)
+
+    Returns:
+        List of extracted integers
+
+    Raises:
+        ValueError: If pattern is invalid or produces non-integer matches
+
+    Example:
+        >>> extract_ints("x=10 y=-5")
+        [10, -5]
+    """
+
+    try:
+        return [int(m) for m in extract_pattern(text, pattern)]
+    except error as e:
+        raise ValueError(f"Invalid regex pattern: {e}")
+    except ValueError as e:
+        raise ValueError(f"Pattern matched non-integer values: {e}")
 
 
-class Parser:
-    def __init__(self, content: str):
+def extract_pattern(text: str, pattern: str) -> list[str]:
+    """
+    Extract pattern matches from text (generic version).
+
+    Args:
+        text: Text to extract from
+        pattern: Regex pattern
+
+    Returns:
+        List of matched strings
+
+    Raises:
+        ValueError: If pattern is invalid
+
+    Example:
+        >>> input = Input.from_string("")
+        >>> input.extract_pattern("a1 b2 c3", r"[a-z]\\d")
+        ['a1', 'b2', 'c3']
+    """
+
+    try:
+        return findall(pattern, text)
+    except error as e:
+        raise ValueError(f"Invalid regex pattern: {e}")
+
+
+def parse(content: str, sep: str | None, skip_empty: bool = True) -> list[str]:
+    """
+    Split content by separator.
+
+    Args:
+        content: String content to split
+        sep: Separator to split on (if empty/None, returns char array)
+        skip_empty: Skip empty parts after stripping whitespace (default: True)
+
+    Returns:
+        List of strings (or list of characters if sep is empty/None)
+    """
+    if not sep:
+        return list(content)
+
+    parts = content.split(sep)
+    if skip_empty:
+        return [stripped for part in parts if (stripped := part.strip())]
+    return parts
+
+
+class Input:
+    """
+    Flexible text parser with composable methods for various input formats.
+
+    Input provides primitive parsing operations (parse_lines, parse_sections,
+    convert_values, extract_ints) that compose into high-level methods for
+    common Advent of Code patterns. Create Input from files using from_file()
+    or from strings using from_string().
+
+    Example:
+        >>> input = Input.from_string("1,2,3\\n4,5,6")
+        >>> input.as_csv_lines()
+        [[1, 2, 3], [4, 5, 6]]
+    """
+
+    LINE_SEPARATOR = "\n"
+    SECTION_SEPARATOR = "\n\n"
+
+    def __init__(self, content: str, line_sep: str = None, section_sep: str = None):
+        """
+        Initialize Input with content and separators.
+
+        Args:
+            content: Text content to parse
+            line_sep: Separator between lines (default: newline)
+            section_sep: Separator between sections (default: blank line)
+        """
+        # Skip initialization if already initialized by __new__/from_file/from_string
+        if hasattr(self, "_content"):
+            return
         self._content = content
+        self._line_sep = line_sep or self.LINE_SEPARATOR
+        self._section_sep = section_sep or self.SECTION_SEPARATOR
+
+    def __new__(cls, filepath: str):
+        """
+        Create Input from file path.
+
+        Always reads from file - use Input.from_string() for string content.
+
+        Args:
+            filepath: Path to input file
+
+        Returns:
+            Input instance with file contents
+        """
+        return cls.from_file(filepath)
+
+    @staticmethod
+    def from_file(
+        filepath: str,
+        line_sep: str = None,
+        section_sep: str = None,
+    ) -> "Input":
+        """
+        Create Input from file (reads immediately).
+
+        Args:
+            filepath: Path to input file
+            line_sep: Separator between lines (default: newline)
+            section_sep: Separator between sections (default: blank line)
+
+        Returns:
+            Input instance with file contents
+
+        Example:
+            >>> input = Input.from_file("data/01_puzzle_input")
+            >>> input.as_lines()
+            ['123', '456', '789']
+        """
+        with open(filepath) as f:
+            content = f.read().strip()
+        return Input.from_string(content, line_sep, section_sep)
+
+    @staticmethod
+    def from_string(
+        content: str,
+        line_sep: str = None,
+        section_sep: str = None,
+    ) -> "Input":
+        """
+        Create Input from string content.
+
+        Args:
+            content: String content to parse
+            line_sep: Separator between lines (default: newline)
+            section_sep: Separator between sections (default: blank line)
+
+        Returns:
+            Input instance
+
+        Example:
+            >>> input = Input.from_string("1,2,3\\n4,5,6")
+            >>> input.as_csv_lines()
+            [[1, 2, 3], [4, 5, 6]]
+        """
+        # Create instance directly to avoid __new__ logic
+        instance = object.__new__(Input)
+        instance._content = content
+        instance._line_sep = line_sep or Input.LINE_SEPARATOR
+        instance._section_sep = section_sep or Input.SECTION_SEPARATOR
+        return instance
 
     @property
     def content(self) -> str:
+        """
+        Get raw content string.
+
+               Returns:
+                   The unparsed content string
+        """
         return self._content
 
-    def as_lines(self, skip_empty: bool = True) -> list[str]:
-        lines = self.content.splitlines()
-        if skip_empty:
-            return [stripped for line in lines if (stripped := line.strip())]
-        return lines
-
-    def as_ints(self) -> list[int]:
-        return [int(line) for line in self.as_lines()]
-
-    def as_char_grid(self) -> list[list[str]]:
-        return [list(line) for line in self.as_lines()]
-
-    def as_int_grid(self, empty_value: int = -1) -> list[list[int]]:
-        return [
-            [int(char) if char.isdigit() else empty_value for char in line]
-            for line in self.as_lines()
-        ]
-
-    def as_grid(self) -> "Grid":
+    def parse(self, sep: str | None, skip_empty: bool = True) -> list[str]:
         """
-        Parse input as a Grid instance for coordinate-based access.
+        Split content by separator.
+
+        Args:
+            sep: Separator to split on (if empty/None, returns char array)
+            skip_empty: Skip empty parts after stripping whitespace (default: True)
+
+        Returns:
+            List of strings (or list of characters if sep is empty/None)
+        """
+        return parse(self._content, sep, skip_empty)
+
+    def as_lines(self, skip_empty: bool = True) -> list[str]:
+        """
+            Parse content as list of lines.
+
+        Args:
+            skip_empty: Skip empty lines after stripping (default: True)
+
+        Returns:
+            List of line strings
+
+        Example:
+            >>> Input.from_string("line1\\nline2\\n\\nline3").as_lines()
+            ['line1', 'line2', 'line3']
+        """
+        return self.parse(self._line_sep, skip_empty=skip_empty)
+
+    def as_grid(self) -> Grid:
+        """
+        Parse content as 2D character grid.
 
         Returns:
             Grid instance wrapping character grid
-        """
-        from .grid import Grid
 
-        return Grid(self.as_char_grid())
+        Example:
+            >>> Input.from_string("ABC\\nDEF").as_char_grid()
+            Grid([['A', 'B', 'C'], ['D', 'E', 'F']])
+        """
+        return Grid([list(line) for line in self.as_lines()])
+
+    def as_int_grid(self, empty_value: int = -1) -> Grid:
+        """
+        Parse content as 2D integer grid (digit characters only).
+
+        Args:
+            empty_value: Value for non-digit characters (default: -1)
+
+        Returns:
+            Grid instance wrapping integer grid
+
+        Example:
+            >>> Input.from_string("012\\n345\\n6.8").as_int_grid()
+            Grid([[0, 1, 2], [3, 4, 5], [6, -1, 8]])
+        """
+        return Grid(
+            [
+                [int(char) if char.isdigit() else empty_value for char in line]
+                for line in self.as_lines()
+            ]
+        )
 
     def as_columns(
         self, separator: str | None = None, converter: type = int
     ) -> list[tuple]:
+        """
+        Parse content as columns (transpose rows to columns).
+
+        Args:
+            separator: Delimiter between values (default: whitespace)
+            converter: Type function to apply to each value (default: int)
+
+        Returns:
+            List of tuples, one per column
+
+        Example:
+            >>> Input.from_string("1 2 3\\n4 5 6").as_columns()
+            [(1, 4), (2, 5), (3, 6)]
+        """
         lines = self.as_lines()
         rows = [list(map(converter, line.split(separator))) for line in lines]
         return list(zip(*rows))
 
     def as_coord_pairs(self, separator: str = ",") -> list[tuple[int, int]]:
+        """
+        Parse content as coordinate pairs.
+
+        Args:
+            separator: Delimiter between x and y (default: ",")
+
+        Returns:
+            List of (x, y) integer tuples
+
+        Example:
+            >>> Input.from_string("1,2\\n3,4\\n5,6").as_coord_pairs()
+            [(1, 2), (3, 4), (5, 6)]
+        """
         return [
             (int(x), int(y))
             for x, y in (line.split(separator) for line in self.as_lines())
@@ -96,6 +408,20 @@ class Parser:
     def as_graph_edges(
         self, separator: str = "-", directed: bool = False
     ) -> dict[str, set[str]]:
+        """
+        Parse content as graph edges (adjacency list).
+
+        Args:
+            separator: Delimiter between nodes (default: "-")
+            directed: If False, create bidirectional edges (default: False)
+
+        Returns:
+            Dictionary mapping each node to set of connected nodes
+
+        Example:
+            >>> Input.from_string("A-B\\nB-C\\nA-C").as_graph_edges()
+            {'A': {'B', 'C'}, 'B': {'A', 'C'}, 'C': {'B', 'A'}}
+        """
         graph = defaultdict(set)
         lines = self.as_lines()
 
@@ -120,26 +446,29 @@ class Parser:
 
         Examples:
             Default usage (comma-separated integers):
-            >>> parser = Parser("75,47,61\\n97,61,53\\n75,29")
-            >>> parser.as_csv_lines()
+            >>> input = Input.from_string("75,47,61\\n97,61,53\\n75,29")
+            >>> input.as_csv_lines()
             [[75, 47, 61], [97, 61, 53], [75, 29]]
 
             Custom separator:
-            >>> parser = Parser("1;2;3\\n4;5;6")
-            >>> parser.as_csv_lines(separator=";")
+            >>> input = Input.from_string("1;2;3\\n4;5;6")
+            >>> input.as_csv_lines(separator=";")
             [[1, 2, 3], [4, 5, 6]]
 
             String values:
-            >>> parser = Parser("a,b,c\\nx,y,z")
-            >>> parser.as_csv_lines(converter=str)
+            >>> input = Input.from_string("a,b,c\\nx,y,z")
+            >>> input.as_csv_lines(converter=str)
             [['a', 'b', 'c'], ['x', 'y', 'z']]
 
             Float values:
-            >>> parser = Parser("1.5,2.7\\n3.2,4.8")
-            >>> parser.as_csv_lines(converter=float)
+            >>> input = Input.from_string("1.5,2.7\\n3.2,4.8")
+            >>> input.as_csv_lines(converter=float)
             [[1.5, 2.7], [3.2, 4.8]]
         """
-        return [list(map(converter, line.split(separator))) for line in self.as_lines()]
+        return [
+            [converter(v.strip()) for v in line.split(separator)]
+            for line in self.parse(self._line_sep)
+        ]
 
     def as_key_value_pairs(
         self,
@@ -160,25 +489,25 @@ class Parser:
 
         Examples:
             Default usage (key as int, values as list of ints):
-            >>> parser = Parser("190: 10 19\\n3267: 81 40 27")
-            >>> parser.as_key_value_pairs()
+            >>> input = Input.from_string("190: 10 19\\n3267: 81 40 27")
+            >>> input.as_key_value_pairs()
             [(190, [10, 19]), (3267, [81, 40, 27])]
 
             Custom value parser:
-            >>> parser = Parser("test: hello world\\nfoo: bar baz")
-            >>> parser.as_key_value_pairs(key_type=str, value_parser=str.split)
+            >>> input = Input.from_string("test: hello world\\nfoo: bar baz")
+            >>> input.as_key_value_pairs(key_type=str, value_parser=str.split)
             [('test', ['hello', 'world']), ('foo', ['bar', 'baz'])]
 
             Single value per key:
-            >>> parser = Parser("x: 42\\ny: 99")
-            >>> parser.as_key_value_pairs(value_parser=int)
+            >>> input = Input.from_string("x: 42\\ny: 99")
+            >>> input.as_key_value_pairs(value_parser=int)
             [('x', 42), ('y', 99)]
         """
         if value_parser is None:
             value_parser = extract_ints
 
         result = []
-        for line in self.as_lines():
+        for line in self.parse(self._line_sep):
             key_str, value_str = line.split(separator, 1)
             key = key_type(key_str.strip())
             value = value_parser(value_str.strip())
@@ -201,22 +530,22 @@ class Parser:
 
         Examples:
             Position/velocity format:
-            >>> parser = Parser("p=0,4 v=3,-3\\np=6,3 v=-1,-3")
-            >>> parser.as_structured_ints(4)
+            >>> input = Input.from_string("p=0,4 v=3,-3\\np=6,3 v=-1,-3")
+            >>> input.as_structured_ints(4)
             [(0, 4, 3, -3), (6, 3, -1, -3)]
 
             Coordinates with metadata:
-            >>> parser = Parser("x=10 y=20 id=1\\nx=30 y=40 id=2")
-            >>> parser.as_structured_ints(3)
+            >>> input = Input.from_string("x=10 y=20 id=1\\nx=30 y=40 id=2")
+            >>> input.as_structured_ints(3)
             [(10, 20, 1), (30, 40, 2)]
 
             Negative numbers supported:
-            >>> parser = Parser("p=100,351 v=-10,25")
-            >>> parser.as_structured_ints(4)
+            >>> input = Input.from_string("p=100,351 v=-10,25")
+            >>> input.as_structured_ints(4)
             [(100, 351, -10, 25)]
         """
         result = []
-        for line_num, line in enumerate(self.as_lines(), 1):
+        for line_num, line in enumerate(self.parse(self._line_sep), 1):
             ints = extract_ints(line)
             if len(ints) != ints_per_line:
                 raise ValueError(
@@ -226,7 +555,7 @@ class Parser:
 
         return result
 
-    def as_sections(self, strip: bool = True) -> list["Parser"]:
+    def as_sections(self, strip: bool = True) -> list["Input"]:
         """
         Split input into multiple sections separated by blank lines.
 
@@ -234,29 +563,40 @@ class Parser:
             strip: Whether to strip whitespace from each section (default: True)
 
         Returns:
-            List of Parser instances, one for each section
+            List of Input instances, one for each section
 
         Examples:
-            Two sections:
-            >>> parser = Parser("section1\\ndata\\n\\nsection2\\nmore")
-            >>> sections = parser.as_sections()
-            >>> len(sections)
-            2
+            Two sections (unpack directly):
+            >>> input = Input.from_string("section1\\ndata\\n\\nsection2\\nmore")
+            >>> part1, part2 = input.as_sections()
+            >>> part1.content
+            'section1\\ndata'
 
             Three sections:
-            >>> parser = Parser("sec1\\n\\nsec2\\n\\nsec3")
-            >>> sections = parser.as_sections()
+            >>> input = Input.from_string("sec1\\n\\nsec2\\n\\nsec3")
+            >>> sections = input.as_sections()
             >>> [s.content for s in sections]
             ['sec1', 'sec2', 'sec3']
 
             With whitespace preservation:
-            >>> parser = Parser("  a  \\n\\n  b  ")
-            >>> sections = parser.as_sections(strip=False)
+            >>> input = Input.from_string("  a  \\n\\n  b  ")
+            >>> sections = input.as_sections(strip=False)
             >>> sections[0].content
             '  a  '
+
+            File-based usage:
+            >>> input = Input.from_file("data/05_puzzle_input")
+            >>> rules, updates = input.as_sections()
+            >>> rules.as_pipe_rules()
+            {47: [53], 97: [13, 61]}
         """
-        parts = self.content.split("\n\n")
-        return [Parser(s.strip() if strip else s) for s in parts]
+        parts = self.parse(self._section_sep, skip_empty=False)
+        return [
+            Input.from_string(
+                s.strip() if strip else s, self._line_sep, self._section_sep
+            )
+            for s in parts
+        ]
 
     def as_pipe_rules(self, separator: str = "|") -> dict[int, list[int]]:
         """
@@ -270,18 +610,18 @@ class Parser:
 
         Examples:
             Ordering rules:
-            >>> parser = Parser("47|53\\n97|13\\n97|61")
-            >>> parser.as_pipe_rules()
+            >>> input = Input.from_string("47|53\\n97|13\\n97|61")
+            >>> input.as_pipe_rules()
             {47: [53], 97: [13, 61]}
 
             Custom separator:
-            >>> parser = Parser("A->B\\nA->C\\nB->D")
-            >>> parser.as_pipe_rules(separator="->")
+            >>> input = Input.from_string("A->B\\nA->C\\nB->D")
+            >>> input.as_pipe_rules(separator="->")
             {'A': ['B', 'C'], 'B': ['D']}
 
             All rules in dict form:
-            >>> parser = Parser("1|2\\n1|3\\n2|4")
-            >>> rules = parser.as_pipe_rules()
+            >>> input = Input.from_string("1|2\\n1|3\\n2|4")
+            >>> rules = input.as_pipe_rules()
             >>> rules[1]
             [2, 3]
         """
@@ -311,21 +651,20 @@ class Parser:
 
         Examples:
             Position/velocity with named structure:
-            >>> parser = Parser("p=0,4 v=3,-3\\np=6,3 v=-1,-3")
-            >>> parser.as_regex_groups(r"p=(-?\\d+),(-?\\d+) v=(-?\\d+),(-?\\d+)")
+            >>> input = Input.from_string("p=0,4 v=3,-3\\np=6,3 v=-1,-3")
+            >>> input.as_regex_groups(r"p=(-?\\d+),(-?\\d+) v=(-?\\d+),(-?\\d+)")
             [('0', '4', '3', '-3'), ('6', '3', '-1', '-3')]
 
             Extract words:
-            >>> parser = Parser("name: Alice age: 25\\nname: Bob age: 30")
-            >>> parser.as_regex_groups(r"name: (\\w+) age: (\\d+)")
+            >>> input = Input.from_string("name: Alice age: 25\\nname: Bob age: 30")
+            >>> input.as_regex_groups(r"name: (\\w+) age: (\\d+)")
             [('Alice', '25'), ('Bob', '30')]
 
             Multiple patterns per line:
-            >>> parser = Parser("move 3 from 1 to 2\\nmove 5 from 3 to 1")
-            >>> parser.as_regex_groups(r"move (\\d+) from (\\d+) to (\\d+)")
+            >>> input = Input.from_string("move 3 from 1 to 2\\nmove 5 from 3 to 1")
+            >>> input.as_regex_groups(r"move (\\d+) from (\\d+) to (\\d+)")
             [('3', '1', '2'), ('5', '3', '1')]
         """
-        from re import search
 
         result = []
         for line in self.as_lines():
@@ -336,82 +675,4 @@ class Parser:
         return result
 
 
-class Input:
-    def __init__(self, data_file: str):
-        self._data_file = data_file
-        self._parser: Parser | None = None
-
-    @property
-    def parser(self) -> Parser:
-        if self._parser is None:
-            with open(self._data_file, "r") as f:
-                self._parser = Parser(f.read().strip())
-        return self._parser
-
-    @property
-    def content(self) -> str:
-        return self.parser.content
-
-    def as_lines(self, skip_empty: bool = True) -> list[str]:
-        return self.parser.as_lines(skip_empty)
-
-    def as_ints(self) -> list[int]:
-        return self.parser.as_ints()
-
-    def as_two_parts(self, strip: bool = True) -> tuple["Parser", "Parser"]:
-        parts = [Parser(s.strip() if strip else s) for s in self.content.split("\n\n")]
-        return (parts[0], parts[1])
-
-    def as_char_grid(self) -> list[list[str]]:
-        return self.parser.as_char_grid()
-
-    def as_int_grid(self, empty_value: int = -1) -> list[list[int]]:
-        return self.parser.as_int_grid(empty_value)
-
-    def as_grid(self) -> "Grid":
-        """
-        Parse input as a Grid instance for coordinate-based access.
-
-        Returns:
-            Grid instance wrapping character grid
-        """
-        return self.parser.as_grid()
-
-    def as_columns(
-        self, separator: str | None = None, converter: type = int
-    ) -> list[tuple]:
-        return self.parser.as_columns(separator, converter)
-
-    def as_coord_pairs(self, separator: str = ",") -> list[tuple[int, int]]:
-        return self.parser.as_coord_pairs(separator)
-
-    def as_graph_edges(
-        self, separator: str = "-", directed: bool = False
-    ) -> dict[str, set[str]]:
-        return self.parser.as_graph_edges(separator, directed)
-
-    def as_csv_lines(self, separator: str = ",", converter: type = int) -> list[list]:
-        return self.parser.as_csv_lines(separator, converter)
-
-    def as_key_value_pairs(
-        self,
-        key_type: type = int,
-        value_parser=None,
-        separator: str = ":",
-    ) -> list[tuple]:
-        return self.parser.as_key_value_pairs(key_type, value_parser, separator)
-
-    def as_structured_ints(self, ints_per_line: int) -> list[tuple[int, ...]]:
-        return self.parser.as_structured_ints(ints_per_line)
-
-    def as_sections(self, strip: bool = True) -> list["Parser"]:
-        return self.parser.as_sections(strip)
-
-    def as_pipe_rules(self, separator: str = "|") -> dict[int, list[int]]:
-        return self.parser.as_pipe_rules(separator)
-
-    def as_regex_groups(self, pattern: str) -> list[tuple]:
-        return self.parser.as_regex_groups(pattern)
-
-
-__all__ = ["Input", "Parser", "extract_ints"]
+__all__ = ["Input", "extract_ints", "extract_pattern", "parse"]

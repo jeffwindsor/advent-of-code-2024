@@ -46,6 +46,7 @@ __all__ = [
     "Input",
     "Parser",
     "extract_ints",
+    "extract_pattern",
     # From math
     "count_continuous_segments",
     "count_digits",
