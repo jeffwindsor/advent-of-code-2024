@@ -76,8 +76,7 @@ def bfs(grid, start, directions, can_visit):
 
 def parse(data_file):
     # problem wants to follow path of increasing values from 0, so EMPTY = -1
-    int_grid_data = Input(data_file).parser.as_int_grid(empty_value=-1)
-    return Grid(int_grid_data)
+    return Input(data_file).as_int_grid(empty_value=-1)
 
 
 def find_reachable_nines(topographic_map, start_coord):

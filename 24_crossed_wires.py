@@ -8,7 +8,7 @@ OP_XOR = "XOR"
 
 def parse_data(data_file):
     """Parse initial wire values and gate connections."""
-    section1, section2 = Input(data_file).as_two_parts()
+    section1, section2 = Input(data_file).as_sections()
 
     # Parse initial wire values from first section
     wire_values = {}

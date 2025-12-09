@@ -4,7 +4,7 @@ from functools import cmp_to_key
 
 
 def parse(data_file):
-    section1, section2 = Input(data_file).as_two_parts()
+    section1, section2 = Input(data_file).as_sections()
 
     # Section 1: Parsing page ordering rules into a dictionary
     page_ordering_rules = defaultdict(list)

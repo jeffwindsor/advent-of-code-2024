@@ -2,7 +2,7 @@ from aoc import Input, run, TestCase
 
 
 def parse_input(data_file):
-    section1, section2 = Input(data_file).as_two_parts()
+    section1, section2 = Input(data_file).as_sections()
     patterns = [p.strip() for p in section1.content.split(",")]
     designs = section2.as_lines()
     return patterns, designs

@@ -46,7 +46,7 @@ def generate_nth_secret(initial, n):
 
 def sum_final_secrets(data_file):
     """Sum the final evolved secret numbers for all buyers."""
-    initial_secrets = Input(data_file).as_ints()
+    initial_secrets = [int(line) for line in Input(data_file).as_lines()]
 
     return sum(generate_nth_secret(secret, ITERATIONS) for secret in initial_secrets)
 
@@ -89,8 +89,7 @@ def maximize_banana_profit(data_file):
     Each buyer sells once at the first occurrence of the chosen sequence.
     We need to find which sequence yields the maximum total across all buyers.
     """
-    initial_secrets = Input(data_file).as_ints()
-
+    initial_secrets = [int(line) for line in Input(data_file).as_lines()]
     sequence_totals = defaultdict(int)
 
     for secret in initial_secrets:
