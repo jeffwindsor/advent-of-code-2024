@@ -1,4 +1,5 @@
 from aoc import Input, run, TestCase, Coord
+from multiprocessing import Pool, cpu_count
 
 
 def parse(data_file):
@@ -37,77 +38,139 @@ def find_path_unique_coords(direction, coord, obstructions, limits):
     return unique_coords
 
 
+def build_jump_table(obstructions, limits):
+    """
+    Precompute where guard ends up when moving in each direction until hitting obstacle.
+
+    Returns dict: {(coord, direction): coord_before_obstacle}
+    This eliminates cell-by-cell stepping during simulation.
+    """
+    jump_table = {}
+
+    # For each position in the grid
+    for row in range(limits.row + 1):
+        for col in range(limits.col + 1):
+            coord = Coord.from_rc(row, col)
+
+            # For each cardinal direction
+            for direction in Coord.DIRECTIONS_CARDINAL:
+                # Walk in this direction until hitting obstacle or boundary
+                current = coord
+                while True:
+                    next_coord = current + direction
+
+                    # Stop if out of bounds or hit obstacle
+                    if not next_coord.in_bounds(limits) or next_coord in obstructions:
+                        break
+
+                    current = next_coord
+
+                # Store the last valid position before obstacle/boundary
+                jump_table[(coord, direction)] = current
+
+    return jump_table
+
+
+def test_obstruction_worker(args):
+    obstruction, guard_start_coord, obstructions, limits, jump_table = args
+    return find_possible_loop_with_jumping(
+        Coord.UP, guard_start_coord, obstructions, limits, jump_table, obstruction
+    )
+
+
 def part1(file):
     unique_path_coords = find_path_unique_coords(Coord.UP, *parse(file))
     return len(unique_path_coords)
 
 
-def find_possible_loop_in_path(direction, coord, obstructions, limits, extra_obstruction=None):
-    """
-    Check if the guard's path forms a loop.
-    Optimized to avoid copying the obstructions set by accepting an optional extra obstruction.
+def find_possible_loop_with_jumping(
+    direction, coord, obstructions, limits, jump_table, extra_obstruction=None
+):
+    visited_turns = set()
+    max_turns = (limits.row + 1) * (limits.col + 1) * 4
+    turn_count = 0
 
-    Args:
-        direction: Current direction of movement
-        coord: Starting coordinate
-        obstructions: Set of obstruction coordinates
-        limits: Boundary limits
-        extra_obstruction: Optional single additional obstruction coordinate
-
-    Returns:
-        True if a loop is detected, False otherwise
-    """
-    visited_vectors = set()
     while coord.in_bounds(limits):
-        vector = (coord, direction)
-        # check if we have been here before
-        if vector in visited_vectors:
-            # this is a loop
-            return True
+        # Jump to position just before next obstacle
+        jumped_coord = jump_table.get((coord, direction), coord)
 
-        visited_vectors.add(vector)
+        # Check if extra obstruction blocks this jump
+        if extra_obstruction is not None:
+            # Walk from current to jumped position, checking for extra obstruction
+            check_coord = coord
+            while check_coord != jumped_coord:
+                next_check = check_coord + direction
+                if next_check == extra_obstruction:
+                    # Extra obstruction blocks, stop here
+                    jumped_coord = check_coord
+                    break
+                check_coord = next_check
+
+        coord = jumped_coord
+
+        # Check what's ahead
         next_coord = coord + direction
-
-        # Check both original obstructions and optional extra one
         is_obstructed = next_coord in obstructions or next_coord == extra_obstruction
 
         if is_obstructed:
-            # Obstructed must turn
-            direction = Coord.TURN_CLOCKWISE[direction]
-        else:
-            # Unobstructed must advance
-            coord = next_coord
+            # Hit obstacle - check for loop at this turning point
+            turn_state = (coord, direction)
+            if turn_state in visited_turns:
+                return True  # Loop detected
 
-    # no loops found
+            visited_turns.add(turn_state)
+            direction = Coord.TURN_CLOCKWISE[direction]
+            turn_count += 1
+
+            # Safety: too many turns means no loop
+            if turn_count >= max_turns:
+                return False
+        elif not next_coord.in_bounds(limits):
+            # Would exit bounds - no loop
+            return False
+
     return False
 
 
 def part2(file):
-    """
-    Test loop detection by adding one obstruction at a time from the guard's path.
-    Optimized to avoid copying the obstructions set for each test.
-    """
     guard_start_coord, obstructions, limits = parse(file)
-    # test added obstructions one by one, using path coords to lower test set
+
+    # Precompute jump table once (one-time cost)
+    jump_table = build_jump_table(obstructions, limits)
+
+    # Get candidate positions from original path
     unique_path_coords = find_path_unique_coords(
         Coord.UP, guard_start_coord, obstructions, limits
     )
 
-    # Count loops by testing each path coordinate as an additional obstruction
-    return sum(
-        1 for obstruction in unique_path_coords
-        if find_possible_loop_in_path(
-            Coord.UP, guard_start_coord, obstructions, limits, obstruction
-        )
-    )
+    # Prepare arguments for parallel processing
+    # Convert to list for multiprocessing
+    obstruction_list = list(unique_path_coords)
+    args_list = [
+        (obstruction, guard_start_coord, obstructions, limits, jump_table)
+        for obstruction in obstruction_list
+    ]
+
+    # Use all available CPU cores to test obstructions in parallel
+    with Pool(cpu_count()) as pool:
+        results = pool.map(test_obstruction_worker, args_list)
+
+    # Count True results (loops found)
+    return sum(results)
 
 
 if __name__ == "__main__":
-    run(part1, [
-        TestCase("./data/06_example", 41),
-        TestCase("./data/06_puzzle_input", 5095),
-    ])
-    run(part2, [
-        TestCase("./data/06_example", 6),
-        TestCase("./data/06_puzzle_input", 1933),
-    ])
+    run(
+        part1,
+        [
+            TestCase("./data/06_example", 41),
+            TestCase("./data/06_puzzle_input", 5095),
+        ],
+    )
+    run(
+        part2,
+        [
+            TestCase("./data/06_example", 6),
+            TestCase("./data/06_puzzle_input", 1933),
+        ],
+    )
